@@ -26,11 +26,13 @@ def scanDirForDicom(dicomdir):
     matches = []
     dirs = []
     for root, dirnames, filenames in os.walk(dicomdir):
-        for filename in fnmatch.filter(filenames, '*.dcm'):
+        #print(root,dirnames,filenames)
+        for filename in filenames: #fnmatch.filter(filenames, '*.dcm'):
             matches.append(os.path.join(root, filename))
             if root not in dirs:
                 dirs.append(root)
-
+    #print(matches)
+    #print(dirs)
     return (matches, dirs)
 
 
