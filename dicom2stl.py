@@ -15,9 +15,10 @@ ordered the same alphabetically as they are physically.
 """
 
 from __future__ import print_function
-import sys, os, getopt, time, gc, glob, math
+import sys, os, getopt, time, gc, glob, math, datetime
 import zipfile, tempfile
 
+begin_time = datetime.datetime.now()
 
 # Global variables
 #
@@ -191,7 +192,7 @@ if tissueType:
     # Convert tissue type name to threshold values
     print("Tissue type: ", tissueType)
     if tissueType.find("bone") > -1:
-        thresholds = [200., 800., 1300., 1500.]
+        thresholds = [150., 800., 1300., 1500.]
     elif tissueType.find("skin") > -1:
         thresholds = [-200., 0., 500., 1500.]
     elif tissueType.find("soft") > -1:
@@ -457,4 +458,6 @@ import shutil
 if cleanUp:
     shutil.rmtree(tempDir)
 
+print("")
+print('Execution Time: ', datetime.datetime.now() - begin_time)
 print("")
