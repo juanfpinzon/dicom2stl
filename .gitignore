@@ -1,3 +1,6 @@
+# folders
+parameter_tuning_tsts/bone_thresholds_tsts/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
