@@ -192,7 +192,7 @@ if tissueType:
     # Convert tissue type name to threshold values
     print("Tissue type: ", tissueType)
     if tissueType.find("bone") > -1:
-        thresholds = [150., 800., 1300., 1500.]
+        thresholds = [150., 800., 1500., 2000.]  #default values: [200., 800., 1300., 1500.]
     elif tissueType.find("skin") > -1:
         thresholds = [-200., 0., 500., 1500.]
     elif tissueType.find("soft") > -1:
