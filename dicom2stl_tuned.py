@@ -189,6 +189,8 @@ parent_dir = args
 dirs = os.listdir(parent_dir[0])
 sub_dirs = [dir_ for dir_ in dirs if not dir_.startswith('.')]
 counter = 0
+errors = 0
+logfname = 'log_' + str(start) + '.txt'
 
 print('')
 print('################################################')
@@ -199,299 +201,307 @@ print('CONVERTING ', len(sub_dirs), 'SCANS')
 print('')
 
 for sub_dir in sub_dirs:
-    counter += 1
-    print('##### PROCESSING SCAN # : ', counter)
-    print('')
+    try:
+        counter += 1
+        print('##### PROCESSING SCAN # : ', counter)
+        print('')
 
-    begin_time = datetime.datetime.now()
-    fname = [parent_dir[0] + '/' + sub_dir]
-    outname_subdir = outname + sub_dir + '.stl'
+        begin_time = datetime.datetime.now()
+        fname = [parent_dir[0] + '/' + sub_dir]
+        outname_subdir = outname + sub_dir + '.stl'
 
-    print("")
-    if tempDir == "":
-        tempDir = tempfile.mkdtemp()
-    print("Temp dir: ", tempDir)
+        print("")
+        if tempDir == "":
+            tempDir = tempfile.mkdtemp()
+        print("Temp dir: ", tempDir)
 
-    if tissueType:
-        # Convert tissue type name to threshold values
-        print("Tissue type: ", tissueType)
-        if tissueType.find("bone") > -1:
-            thresholds = [150., 800., 1500., 2000.]  #default values: [200., 800., 1300., 1500.]
-        elif tissueType.find("skin") > -1:
-            thresholds = [-200., 0., 500., 1500.]
-        elif tissueType.find("soft") > -1:
-            thresholds = [-15., 30., 58., 100.]
-            medianFilter = True
-        elif tissueType.find("fat") > -1:
-            thresholds = [-122., -112., -96., -70.]
-            medianFilter = True
-
-
-    if doubleThreshold:
-        # check that there are 4 threshold values.
-        print("Thresholds: ", thresholds)
-        if len(thresholds) != 4:
-            print("Error: Threshold is not of size 4.", thresholds)
-            sys.exit(3)
-    else:
-        print("Isovalue = ", isovalue)
+        if tissueType:
+            # Convert tissue type name to threshold values
+            print("Tissue type: ", tissueType)
+            if tissueType.find("bone") > -1:
+                thresholds = [150., 800., 1500., 2000.]  #default values: [200., 800., 1300., 1500.]
+            elif tissueType.find("skin") > -1:
+                thresholds = [-200., 0., 500., 1500.]
+            elif tissueType.find("soft") > -1:
+                thresholds = [-15., 30., 58., 100.]
+                medianFilter = True
+            elif tissueType.find("fat") > -1:
+                thresholds = [-122., -112., -96., -70.]
+                medianFilter = True
 
 
-    if len(fname) == 0:
-        print("Error: no input given.")
-        sys.exit(4)
-
-    if zipfile.is_zipfile(fname[0]):
-        zipFlag = True
-
-    if os.path.isdir(fname[0]):
-        dirFlag = True
-
-
-    else:
-        l = len(fname)
-        if l > 1:
-            print("File names: ", fname[0], fname[1], "...", fname[l-1], "\n")
+        if doubleThreshold:
+            # check that there are 4 threshold values.
+            print("Thresholds: ", thresholds)
+            if len(thresholds) != 4:
+                print("Error: Threshold is not of size 4.", thresholds)
+                sys.exit(3)
         else:
-            print("File names: ", fname, "\n")
-
-    import SimpleITK as sitk
-
-    if debug:
-        print("SimpleITK version: ", sitk.Version.VersionString())
-        print("SimpleITK: ", sitk, "\n")
-
-    img = sitk.Image(100, 100, 100, sitk.sitkUInt8)
-    dcmnames = []
-    metasrc = img
-
-    from utils import dicomutils
-
-    #  Load our Dicom data
-    #
-    if zipFlag:
-        # Case for a zip file of images
-        if verbose:
-            print("zip")
-        img, modality = dicomutils.loadZipDicom(fname[0], tempDir)
+            print("Isovalue = ", isovalue)
 
 
-    else:
-        if dirFlag:
+        if len(fname) == 0:
+            print("Error: no input given.")
+            sys.exit(4)
+
+        if zipfile.is_zipfile(fname[0]):
+            zipFlag = True
+
+        if os.path.isdir(fname[0]):
+            dirFlag = True
+
+
+        else:
+            l = len(fname)
+            if l > 1:
+                print("File names: ", fname[0], fname[1], "...", fname[l-1], "\n")
+            else:
+                print("File names: ", fname, "\n")
+
+        import SimpleITK as sitk
+
+        if debug:
+            print("SimpleITK version: ", sitk.Version.VersionString())
+            print("SimpleITK: ", sitk, "\n")
+
+        img = sitk.Image(100, 100, 100, sitk.sitkUInt8)
+        dcmnames = []
+        metasrc = img
+
+        from utils import dicomutils
+
+        #  Load our Dicom data
+        #
+        if zipFlag:
+            # Case for a zip file of images
             if verbose:
-                print("directory")
-                print(fname[0])
-            img, modality = dicomutils.loadLargestSeries(fname[0])
+                print("zip")
+            img, modality = dicomutils.loadZipDicom(fname[0], tempDir)
+
 
         else:
-            # Case for a single volume image
-            if len(fname) == 1:
+            if dirFlag:
                 if verbose:
-                    print("Reading volume: ", fname[0])
-                img = sitk.ReadImage(fname[0])
-                modality = dicomutils.getModality(img)
+                    print("directory")
+                    print(fname[0])
+                img, modality = dicomutils.loadLargestSeries(fname[0])
 
             else:
-                # Case for a series of image files
-                if verbose:
-                    if verbose > 1:
-                        print("Reading images: ", fname)
-                    else:
-                        l = len(fname)
-                        print("Reading images: ",
-                            fname[0], fname[1], "...", fname[l-1])
-                isr = sitk.ImageSeriesReader()
-                isr.SetFileNames(fname)
-                img = isr.Execute()
-                firstslice = sitk.ReadImage(fname[0])
-                modality = dicomutils.getModality(firstslice)
+                # Case for a single volume image
+                if len(fname) == 1:
+                    if verbose:
+                        print("Reading volume: ", fname[0])
+                    img = sitk.ReadImage(fname[0])
+                    modality = dicomutils.getModality(img)
 
-    if CTonly and ((sitk.Version.MinorVersion() > 8) or (sitk.Version.MajorVersion() > 0)):
-        # Check the metadata for CT image type.  Note that this only works with
-        # SimpleITK version 0.8.0 or later.  For earlier versions there is no GetMetaDataKeys method
+                else:
+                    # Case for a series of image files
+                    if verbose:
+                        if verbose > 1:
+                            print("Reading images: ", fname)
+                        else:
+                            l = len(fname)
+                            print("Reading images: ",
+                                fname[0], fname[1], "...", fname[l-1])
+                    isr = sitk.ImageSeriesReader()
+                    isr.SetFileNames(fname)
+                    img = isr.Execute()
+                    firstslice = sitk.ReadImage(fname[0])
+                    modality = dicomutils.getModality(firstslice)
 
-        if modality.find("CT") == -1:
-            print("Imaging modality is not CT.  Exiting.")
-            sys.exit(1)
+        if CTonly and ((sitk.Version.MinorVersion() > 8) or (sitk.Version.MajorVersion() > 0)):
+            # Check the metadata for CT image type.  Note that this only works with
+            # SimpleITK version 0.8.0 or later.  For earlier versions there is no GetMetaDataKeys method
 
-
-    #vtkname =  tempDir+"/vol0.vtk"
-    #sitk.WriteImage( img, vtkname )
-
-    def roundThousand(x):
-        y = int(1000.0*x+0.5)
-        return str(float(y) * .001)
-
-
-    def elapsedTime(start_time):
-        dt = roundThousand(time.clock()-start_time)
-        print("    ", dt, "seconds")
+            if modality.find("CT") == -1:
+                print("Imaging modality is not CT.  Exiting.")
+                sys.exit(1)
 
 
-    # Write out the metadata text file
-    #
-    if len(metadataFile):
-        FP = open(metadataFile, "w")
-        size = img.GetSize()
-        spacing = img.GetSpacing()
-        FP.write('xdimension ' + str(size[0]) + '\n')
-        FP.write('ydimension ' + str(size[1]) + '\n')
-        FP.write('zdimension ' + str(size[2]) + '\n')
-        FP.write('xspacing ' + roundThousand(spacing[0]) + '\n')
-        FP.write('yspacing ' + roundThousand(spacing[1]) + '\n')
-        FP.write('zspacing ' + roundThousand(spacing[2]) + '\n')
-        FP.close()
+        #vtkname =  tempDir+"/vol0.vtk"
+        #sitk.WriteImage( img, vtkname )
+
+        def roundThousand(x):
+            y = int(1000.0*x+0.5)
+            return str(float(y) * .001)
 
 
-    #
-    # shrink the volume to 256 cubed
-    if shrinkFlag:
-        sfactor = []
-        size = img.GetSize()
-        sum = 0
-        for s in size:
-            x = int(math.ceil(s/256.0))
-            sfactor.append(x)
-            sum = sum + x
+        def elapsedTime(start_time):
+            dt = roundThousand(time.clock()-start_time)
+            print("    ", dt, "seconds")
 
-        if sum > 3:
-            # if sum==3, no shrink happens
+
+        # Write out the metadata text file
+        #
+        if len(metadataFile):
+            FP = open(metadataFile, "w")
+            size = img.GetSize()
+            spacing = img.GetSpacing()
+            FP.write('xdimension ' + str(size[0]) + '\n')
+            FP.write('ydimension ' + str(size[1]) + '\n')
+            FP.write('zdimension ' + str(size[2]) + '\n')
+            FP.write('xspacing ' + roundThousand(spacing[0]) + '\n')
+            FP.write('yspacing ' + roundThousand(spacing[1]) + '\n')
+            FP.write('zspacing ' + roundThousand(spacing[2]) + '\n')
+            FP.close()
+
+
+        #
+        # shrink the volume to 256 cubed
+        if shrinkFlag:
+            sfactor = []
+            size = img.GetSize()
+            sum = 0
+            for s in size:
+                x = int(math.ceil(s/256.0))
+                sfactor.append(x)
+                sum = sum + x
+
+            if sum > 3:
+                # if sum==3, no shrink happens
+                t = time.clock()
+                print("Shrink factors: ", sfactor)
+                img = sitk.Shrink(img, sfactor)
+                newsize = img.GetSize()
+                print(size, "->", newsize)
+                elapsedTime(t)
+
+        gc.collect()
+
+
+        # Apply anisotropic smoothing to the volume image.  That's a smoothing filter
+        # that preserves edges.
+        #
+        if anisotropicSmoothing:
+            print("Anisotropic Smoothing")
             t = time.clock()
-            print("Shrink factors: ", sfactor)
-            img = sitk.Shrink(img, sfactor)
-            newsize = img.GetSize()
-            print(size, "->", newsize)
+            pixelType = img.GetPixelID()
+            img = sitk.Cast(img, sitk.sitkFloat32)
+            img = sitk.CurvatureAnisotropicDiffusion(img, .03)
+            img = sitk.Cast(img, pixelType)
             elapsedTime(t)
+            gc.collect()
 
-    gc.collect()
+        # Apply the double threshold filter to the volume
+        #
+        if doubleThreshold:
+            print("Double Threshold")
+            t = time.clock()
+            img = sitk.DoubleThreshold(
+                img, thresholds[0], thresholds[1], thresholds[2], thresholds[3], 255, 0)
+            isovalue = 64.0
+            elapsedTime(t)
+            gc.collect()
 
+        # Apply a 3x3x1 median filter.  I only use 1 in the Z direction so it's not so slow.
+        #
+        if medianFilter:
+            print("Median filter")
+            t = time.clock()
+            img = sitk.Median(img, [3, 3, 1])
+            elapsedTime(t)
+            gc.collect()
 
-    # Apply anisotropic smoothing to the volume image.  That's a smoothing filter
-    # that preserves edges.
-    #
-    if anisotropicSmoothing:
-        print("Anisotropic Smoothing")
-        t = time.clock()
-        pixelType = img.GetPixelID()
-        img = sitk.Cast(img, sitk.sitkFloat32)
-        img = sitk.CurvatureAnisotropicDiffusion(img, .03)
-        img = sitk.Cast(img, pixelType)
-        elapsedTime(t)
+        # Pad black to the boundaries of the image
+        #
+        pad = [5, 5, 5]
+        img = sitk.ConstantPad(img, pad, pad)
         gc.collect()
 
-    # Apply the double threshold filter to the volume
-    #
-    if doubleThreshold:
-        print("Double Threshold")
-        t = time.clock()
-        img = sitk.DoubleThreshold(
-            img, thresholds[0], thresholds[1], thresholds[2], thresholds[3], 255, 0)
-        isovalue = 64.0
-        elapsedTime(t)
+        if verbose:
+            print("\nImage for isocontouring")
+            print(img.GetSize())
+            print(img.GetPixelIDTypeAsString())
+            print(img.GetSpacing())
+            print(img.GetOrigin())
+            if verbose > 1:
+                print(img)
+            print("")
+
+        #vtkname =  tempDir+"/vol.vtk"
+        #sitk.WriteImage( img, vtkname )
+
+        import platform
+        from utils import sitk2vtk
+        import vtk
+        vtkimg = None
+
+        if platform.system() is "Windows":
+            # hacky work-around to avoid a crash on Windows
+            vtkimg = vtk.vtkImageData()
+            vtkimg.SetDimensions(10, 10, 10)
+            vtkimg.AllocateScalars(vtk.VTK_CHAR, 1)
+            sitk2vtk.sitk2vtk(img, vtkimg, False)
+        else:
+            vtkimg = sitk2vtk.sitk2vtk(img)
+
+        img = None
         gc.collect()
 
-    # Apply a 3x3x1 median filter.  I only use 1 in the Z direction so it's not so slow.
-    #
-    if medianFilter:
-        print("Median filter")
-        t = time.clock()
-        img = sitk.Median(img, [3, 3, 1])
-        elapsedTime(t)
+        import traceback
+        import vtk
+
+        if debug:
+            print("\nVTK version: ", vtk.vtkVersion.GetVTKVersion())
+            print("VTK: ", vtk, "\n")
+
+
+        from utils import vtkutils
+
+        if debug:
+            print("Extracting surface")
+        mesh = vtkutils.extractSurface(vtkimg, isovalue)
+        vtkimg = None
+        gc.collect()
+        if debug:
+            print("Cleaning mesh")
+        mesh2 = vtkutils.cleanMesh(mesh, connectivityFilter)
+        mesh = None
+        gc.collect()
+        if debug:
+            print("Smoothing mesh", smoothIterations, "iterations")
+        mesh3 = vtkutils.smoothMesh(mesh2, smoothIterations)
+        mesh2 = None
+        gc.collect()
+        if debug:
+            print("Simplifying mesh")
+        mesh4 = vtkutils.reduceMesh(mesh3, quad)
+        mesh3 = None
         gc.collect()
 
-    # Pad black to the boundaries of the image
-    #
-    pad = [5, 5, 5]
-    img = sitk.ConstantPad(img, pad, pad)
-    gc.collect()
+        if rotFlag:
+            mesh5 = vtkutils.rotateMesh(mesh4, rotAxis, rotAngle)
+        else:
+            mesh5 = mesh4
+        vtkutils.writeMesh(mesh5, outname_subdir)
+        mesh4 = None
+        gc.collect()
 
-    if verbose:
-        print("\nImage for isocontouring")
-        print(img.GetSize())
-        print(img.GetPixelIDTypeAsString())
-        print(img.GetSpacing())
-        print(img.GetOrigin())
-        if verbose > 1:
-            print(img)
+
+        # remove the temp directory
+        import shutil
+        if cleanUp:
+            shutil.rmtree(tempDir)
+            tempDir = ""
+
+        print("")
+        print('#####')
+        print('STL FILE SAVED')
+        print('Execution Time: ', datetime.datetime.now() - begin_time)
+        print("Progress %: ", "{0:.0%}".format(counter/len(sub_dirs)))
+        print('#####')
+        print("")
         print("")
 
-    #vtkname =  tempDir+"/vol.vtk"
-    #sitk.WriteImage( img, vtkname )
-
-    import platform
-    from utils import sitk2vtk
-    import vtk
-    vtkimg = None
-
-    if platform.system() is "Windows":
-        # hacky work-around to avoid a crash on Windows
-        vtkimg = vtk.vtkImageData()
-        vtkimg.SetDimensions(10, 10, 10)
-        vtkimg.AllocateScalars(vtk.VTK_CHAR, 1)
-        sitk2vtk.sitk2vtk(img, vtkimg, False)
-    else:
-        vtkimg = sitk2vtk.sitk2vtk(img)
-
-    img = None
-    gc.collect()
-
-    import traceback
-    import vtk
-
-    if debug:
-        print("\nVTK version: ", vtk.vtkVersion.GetVTKVersion())
-        print("VTK: ", vtk, "\n")
-
-
-    from utils import vtkutils
-
-    if debug:
-        print("Extracting surface")
-    mesh = vtkutils.extractSurface(vtkimg, isovalue)
-    vtkimg = None
-    gc.collect()
-    if debug:
-        print("Cleaning mesh")
-    mesh2 = vtkutils.cleanMesh(mesh, connectivityFilter)
-    mesh = None
-    gc.collect()
-    if debug:
-        print("Smoothing mesh", smoothIterations, "iterations")
-    mesh3 = vtkutils.smoothMesh(mesh2, smoothIterations)
-    mesh2 = None
-    gc.collect()
-    if debug:
-        print("Simplifying mesh")
-    mesh4 = vtkutils.reduceMesh(mesh3, quad)
-    mesh3 = None
-    gc.collect()
-
-    if rotFlag:
-        mesh5 = vtkutils.rotateMesh(mesh4, rotAxis, rotAngle)
-    else:
-        mesh5 = mesh4
-    vtkutils.writeMesh(mesh5, outname_subdir)
-    mesh4 = None
-    gc.collect()
-
-
-    # remove the temp directory
-    import shutil
-    if cleanUp:
-        shutil.rmtree(tempDir)
-        tempDir = ""
-
-    print("")
-    print('#####')
-    print('STL FILE SAVED')
-    print('Execution Time: ', datetime.datetime.now() - begin_time)
-    print("Progress %: ", "{0:.0%}".format(counter/len(sub_dirs)))
-    print('#####')
-    print("")
-    print("")
+    except Exception as e:
+        errors += 1
+        logf = open(logfname, 'a')
+        logf.write("Error procesing file {0}: {1}\n\n".format(fname[0], str(e)))
+        logf.close()
+        continue
 
 print('################################################')
 print('BATCH PROCESSING COMPLETED')
-print(counter, ' SCANS PROCESSED')
+print((counter - errors), ' SCANS PROCESSED')
 print('TOTAL EXECUTION TIME: ', datetime.datetime.now() - start)
 print('################################################')
