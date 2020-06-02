@@ -88,11 +88,12 @@ Modifications for NOVEL Software Systems - SkullNet Project:
 ========
 
 Modifications:
-    - Baked-in best parameters for processing Skulls CT Scans for SkullNet project
-        - Isocountering (Isovalue) = 150
-        - Smooth Iterations = 5,0000
-        - Reduction factor (quad) = 0.75 
-    - Added folder/subfolder batch processing loop
-    - Added Error handling and logging.
+* Baked-in best parameters for processing Skulls CT Scans for SkullNet project:
+    * Isocountering (Isovalue) = 150
+    * Smooth Iterations = 5,0000
+    * Reduction factor (quad) = 0.75 
+* Added folder/subfolder batch processing loop
+* Added Error handling and logging.
+
 Usage:
 > python dicom2stl_tuned.py -o output_folder input_parent_folder
