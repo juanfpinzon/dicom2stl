@@ -83,3 +83,16 @@ To extract soft tissue from a dicom series in directory and
 apply a 180 degree Y axis rotation:
 > python dicom2stl.py --enable rotation -t soft_tissue -o soft.stl dicom_dir
 
+
+Modifications for NOVEL Software Systems - SkullNet Project:
+========
+
+Modifications:
+    - Baked-in best parameters for processing Skulls CT Scans for SkullNet project
+        - Isocountering (Isovalue) = 150
+        - Smooth Iterations = 5,0000
+        - Reduction factor (quad) = 0.75 
+    - Added folder/subfolder batch processing loop
+    - Added Error handling and logging.
+Usage:
+> python dicom2stl_tuned.py -o output_folder input_parent_folder

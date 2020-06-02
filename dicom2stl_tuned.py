@@ -12,6 +12,21 @@ Note: if you run this script with the individual Dicom slices provided on the
 command line, they might not be ordered in the correct order.  You are better
 off providing a zip file or a directory.  Dicom slices are not necessarily
 ordered the same alphabetically as they are physically.
+
+Modifications:
+    - Baked-in best parameters for processing Skulls CT Scans for SkullNet project
+        - Isocountering (Isovalue) = 150
+        - Smooth Iterations = 5,0000
+        - Reduction factor (quad) = 0.75 
+    - Added folder/subfolder batch processing loop
+    - Added Error handling and logging.
+Usage:
+    - python dicom2stl_tuned.py -o output_folder input_parent_folder
+    
+Juan Fernando Pinzon 
+Novel Software Systems
+Novosibirsk, Russia
+06.2020
 """
 
 from __future__ import print_function

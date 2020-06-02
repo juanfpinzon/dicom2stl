@@ -12,6 +12,12 @@ Note: if you run this script with the individual Dicom slices provided on the
 command line, they might not be ordered in the correct order.  You are better
 off providing a zip file or a directory.  Dicom slices are not necessarily
 ordered the same alphabetically as they are physically.
+
+Modifications and some bug fixes done by:
+Juan Fernando Pinzon
+Novel Software Systems
+Novosibirsk, Russia
+05.2020
 """
 
 from __future__ import print_function
