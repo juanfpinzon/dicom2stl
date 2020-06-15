@@ -26,6 +26,9 @@ SimpleITK can be installed via the following command:
 The options for the script can be seen by running it:
 > python dicom2stl.py --help
 
+Trimesh (for STL Post-processing (Skull extraction)):
+> pip trimesh
+
 
 How it works
 ============
