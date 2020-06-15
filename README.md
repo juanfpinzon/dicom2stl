@@ -97,3 +97,13 @@ Modifications:
 
 Usage:
 > python dicom2stl_tuned.py -o output_folder input_parent_folder
+
+
+STL POST-PROCESSING:
+========
+
+Script to remove unwanted objects from CT Scans input STL's and only 
+extract skull object, as a new STL file.
+
+Usage:
+> python skull_extraction.py -i <input_folder> -o <output_folder>
