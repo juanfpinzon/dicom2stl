@@ -89,7 +89,6 @@ def usage():
     print("  -d string, --double string    Double threshold with 4 values in a string seperated by semicolons")
     print("")
     print("  Mesh options")
-    print("  -l, --largest       Keep only the largest connected mesh")
     print("  --rotaxis int       Rotation axis (default=1, Y-axis)")
     print("  --rotangle float    Rotation angle (default=180 degrees)")
     print("  --smooth int        Smoothing iterations (default=25)")

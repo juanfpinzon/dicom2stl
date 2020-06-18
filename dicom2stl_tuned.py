@@ -70,46 +70,38 @@ options = []
 
 
 def usage():
-    print("")
-    print("dicom2stl.py: [options] dicom.zip")
-    print("   or")
-    print("dicom2stl.py: [options] volume_image")
-    print("   or")
-    print("dicom2stl.py: [options] slice1 ... sliceN")
-    print("   or")
-    print("dicom2stl.py: [options] dicom_directory")
-    print("")
-    print("  -h, --help          This help message")
-    print("  -v, --verbose       Verbose output")
-    print("  -D, --debug         Debug mode")
-    print("")
-    print("  -o string           Output file name (default=result.stl)")
-    print("  -m string           Metadata file name (default=\"\")")
-    print("  --ct                Only allow CT images")
-    print("  -c, --clean         Clean up temp files")
-    print("  -T string, --temp string      Directory to place temporary files")
-    print("  -s string, --search string    Dicom series search string")
-    print("")
-    print("  Volume processing options")
-    print(
-        "  -t string, --type string      CT Tissue type [skin, bone, soft_tissue, fat]")
-    print("  -a, --anisotropic             Apply anisotropic smoothing to the volume")
-    print("  -i num, --isovalue num        Iso-surface value")
-    print("  -d string, --double string    Double threshold with 4 values in a string seperated by semicolons")
-    print("")
-    print("  Mesh options")
-    print("  -l, --largest       Keep only the largest connected mesh")
-    print("  --rotaxis int       Rotation axis (default=1, Y-axis)")
-    print("  --rotangle float    Rotation angle (default=180 degrees)")
-    print("  --smooth int        Smoothing iterations (default=25)")
-    print("  --reduce float      Polygon reduction factor (default=.9)")
-    print("")
-    print("  Enable/Disable various filtering options")
-    print(
-        "  --disable string    Disable an option [anisotropic, shrink, median, largest, rotation]")
-    print(
-        "  --enable  string    Enable an option [anisotropic, shrink, median, largest, rotation]")
+    print("""
+    dicom2stl.py: [options] dicom_directory
+    
+        -h, --help          This help message
+        -v, --verbose       Verbose output
+        -D, --debug         Debug mode
 
+        -o string           Output file name (default=result.stl)
+        -m string           Metadata file name (default=\"\")
+        --ct                Only allow CT images
+        -T string, --temp string      Directory to place temporary files
+        -s string, --search string    Dicom series search string
+
+        Volume processing options:
+
+        -t string, --type string      CT Tissue type [skin, bone, soft_tissue, fat]
+        -a, --anisotropic             Apply anisotropic smoothing to the volume
+        -i num, --isovalue num        Iso-surface value
+        -d string, --double string    Double threshold with 4 values in a string seperated by semicolons
+
+        Mesh options:
+
+        --rotaxis int       Rotation axis (default=1, Y-axis)")
+        --rotangle float    Rotation angle (default=180 degrees)")
+        --smooth int        Smoothing iterations (default=25)")
+        --reduce float      Polygon reduction factor (default=.9)
+
+        Enable/Disable various filtering options")
+    
+        --disable string    Disable an option [anisotropic, shrink, median, largest, rotation]")
+        --enable  string    Enable an option [anisotropic, shrink, median, largest, rotation]")
+    """)
 
 # Parse the command line arguments
 #
@@ -441,7 +433,7 @@ for sub_dir in sub_dirs:
         import vtk
         vtkimg = None
 
-        if platform.system() is "Windows":
+        if platform.system() == "Windows":
             # hacky work-around to avoid a crash on Windows
             vtkimg = vtk.vtkImageData()
             vtkimg.SetDimensions(10, 10, 10)
