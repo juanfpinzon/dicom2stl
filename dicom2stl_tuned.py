@@ -80,6 +80,7 @@ def usage():
         -o string           Output file name (default=result.stl)
         -m string           Metadata file name (default=\"\")
         --ct                Only allow CT images
+        -c, --clean         Clean up temp files
         -T string, --temp string      Directory to place temporary files
         -s string, --search string    Dicom series search string
 
