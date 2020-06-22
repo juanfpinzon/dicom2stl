@@ -1,9 +1,66 @@
 name: dicom2stl
-
 channels:
   - simpleitk
-
+  - conda-forge
+  - defaults
 dependencies:
-  - simpleitk
-  - vtk
-  - numpy
+  - _libgcc_mutex=0.1=main
+  - blas=1.0=mkl
+  - bzip2=1.0.8=h7b6447c_0
+  - ca-certificates=2020.1.1=0
+  - certifi=2020.4.5.2=py37_0
+  - curl=7.69.1=hbc83047_0
+  - decorator=4.4.2=py_0
+  - expat=2.2.6=he6710b0_0
+  - freetype=2.10.2=h5ab3b9f_0
+  - future=0.18.2=py37_1
+  - hdf4=4.2.13=h3ca952b_2
+  - hdf5=1.10.4=hb1b8bf9_0
+  - icu=58.2=he6710b0_3
+  - intel-openmp=2020.1=217
+  - jpeg=9b=h024ee3a_2
+  - jsoncpp=1.8.4=hfd86e86_0
+  - krb5=1.17.1=h173b8e3_0
+  - ld_impl_linux-64=2.33.1=h53a641e_7
+  - libcurl=7.69.1=h20c2e04_0
+  - libedit=3.1.20191231=h7b6447c_0
+  - libffi=3.3=he6710b0_1
+  - libgcc-ng=9.1.0=hdf63c60_0
+  - libgfortran-ng=7.3.0=hdf63c60_0
+  - libnetcdf=4.6.1=h11d0813_2
+  - libogg=1.3.2=h7b6447c_0
+  - libpng=1.6.37=hbc83047_0
+  - libssh2=1.9.0=h1ba5d50_1
+  - libstdcxx-ng=9.1.0=hdf63c60_0
+  - libtheora=1.1.1=h5ab3b9f_1
+  - libtiff=4.1.0=h2733197_0
+  - libvorbis=1.3.6=h7b6447c_0
+  - libxml2=2.9.10=he19cac6_1
+  - lz4-c=1.8.1.2=h14c3975_0
+  - mkl=2020.1=217
+  - mkl-service=2.3.0=py37he904b0f_0
+  - mkl_fft=1.1.0=py37h23d657b_0
+  - mkl_random=1.1.1=py37h0573a6f_0
+  - ncurses=6.2=he6710b0_1
+  - networkx=2.4=py_0
+  - numpy=1.18.1=py37h4f9e942_0
+  - numpy-base=1.18.1=py37hde5b4d6_1
+  - openssl=1.1.1g=h7b6447c_0
+  - pip=20.1.1=py37_1
+  - python=3.7.7=hcff3b4d_5
+  - python_abi=3.7=1_cp37m
+  - readline=8.0=h7b6447c_0
+  - scipy=1.4.1=py37h0b6359f_0
+  - setuptools=47.3.0=py37_0
+  - simpleitk=1.2.4=py37hf484d3e_0
+  - six=1.15.0=py_0
+  - sqlite=3.32.2=h62c20be_0
+  - tbb=2020.0=hfd86e86_0
+  - tk=8.6.10=hbc83047_0
+  - trimesh=3.7.0=pyh9f0ad1d_0
+  - vtk=8.2.0=py37haa4764d_200
+  - wheel=0.34.2=py37_0
+  - xz=5.2.5=h7b6447c_0
+  - zlib=1.2.11=h7b6447c_3
+  - zstd=1.3.7=h0b5b093_0
+prefix: /home/juan/anaconda3/envs/dicom2stl
