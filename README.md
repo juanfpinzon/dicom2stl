@@ -110,3 +110,11 @@ extract skull object, as a new STL file.
 
 Usage:
 > python skull_extraction.py -i <input_folder> -o <output_folder>
+
+PIPELINE DICOM 2 SKULL:
+========
+
+Pipeline script that executes both dicom2stl_tuned.py and skull_extraction.py scripts.
+
+Usage:
+> python dicom2skull.py -i <input_dicom_parent_folder> -o <output_folder> -n <no_clean (to keep intermediate stage files (optional))>
