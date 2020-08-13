@@ -31,7 +31,7 @@ Novosibirsk, Russia
 
 from __future__ import print_function
 import sys, os, getopt, time, gc, glob, math, datetime, logging
-import zipfile, tempfile
+import zipfile, tempfile, shutil
 
 start = datetime.datetime.now()
 
@@ -67,6 +67,8 @@ rotAxis = 1
 rotAngle = 180
 
 options = []
+
+LOWQUALITY_SLICES_TH = 100
 
 
 def usage():
@@ -198,6 +200,7 @@ dirs = os.listdir(parent_dir[0])
 sub_dirs = [dir_ for dir_ in dirs if not dir_.startswith('.')]
 counter = 0
 errors = 0
+lowq = 0
 
 # Setting up Logging
 
@@ -209,7 +212,7 @@ logfname = logs_dir + 'log_dicom2stl_' + str(start) + '.log'
 # set up logging to file - see previous section for more details
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
-                    datefmt='%m-%d %H:%M',
+                    datefmt='%d-%m-%y %H:%M',
                     filename=logfname,
                     filemode='w')
 # define a Handler which writes INFO messages or higher to the sys.stderr
@@ -240,7 +243,7 @@ for sub_dir in sub_dirs:
         fname = [parent_dir[0] + '/' + sub_dir]
         outname_subdir = outname + sub_dir + '.stl'
 
-        print("")
+        #print("")
         if tempDir == "":
             tempDir = tempfile.mkdtemp()
         logging.info("Temp dir: " + tempDir)
@@ -346,6 +349,17 @@ for sub_dir in sub_dirs:
             if modality.find("CT") == -1:
                 logging.error("Imaging modality is not CT.  Exiting.")
                 sys.exit(1)
+
+        # Loq quality verification:
+        slices_amount = img.GetSize()[2]
+        if slices_amount < LOWQUALITY_SLICES_TH:
+            lowq += 1
+            logging.warning('The Series only contains: ' + str(slices_amount) + ' slices')
+            logging.warning('Number of Slices in series is to low, ommiting conversion.')
+            logging.info("")
+            shutil.rmtree(tempDir)
+            tempDir = ""
+            continue
 
 
         #vtkname =  tempDir+"/vol0.vtk"
@@ -509,7 +523,6 @@ for sub_dir in sub_dirs:
 
 
         # remove the temp directory
-        import shutil
         if cleanUp:
             shutil.rmtree(tempDir)
             tempDir = ""
@@ -532,7 +545,8 @@ for sub_dir in sub_dirs:
 
 logging.info('################################################')
 logging.info('BATCH PROCESSING COMPLETED')
-logging.info(str(counter - errors) + ' SCANS PROCESSED')
+logging.info(str(counter - errors - lowq) + ' SCANS PROCESSED')
+logging.info(str(lowq) + ' SCANS OMMITED DUE TO LOW QUALITY')
 logging.info(str(errors) + ' ERRORS FOUND' )
 logging.info('TOTAL EXECUTION TIME: ' + str(datetime.datetime.now() - start))
 logging.info('################################################')
