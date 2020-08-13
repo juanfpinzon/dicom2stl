@@ -30,7 +30,7 @@ Novosibirsk, Russia
 """
 
 from __future__ import print_function
-import sys, os, getopt, time, gc, glob, math, datetime
+import sys, os, getopt, time, gc, glob, math, datetime, logging
 import zipfile, tempfile
 
 start = datetime.datetime.now()
@@ -198,21 +198,43 @@ dirs = os.listdir(parent_dir[0])
 sub_dirs = [dir_ for dir_ in dirs if not dir_.startswith('.')]
 counter = 0
 errors = 0
-logfname = 'log_' + str(start) + '.txt'
 
-print('')
-print('################################################')
-print('############ DICOM 2 STL CONVERSION ############')
-print('################################################')
-print('')
-print('CONVERTING ', len(sub_dirs), 'SCANS')
-print('')
+# Setting up Logging
+
+logs_dir = os.getcwd() + '/logs/'
+if not os.path.exists(logs_dir):
+    os.makedirs(logs_dir)
+logfname = logs_dir + 'log_dicom2stl_' + str(start) + '.log'
+
+# set up logging to file - see previous section for more details
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+                    datefmt='%m-%d %H:%M',
+                    filename=logfname,
+                    filemode='w')
+# define a Handler which writes INFO messages or higher to the sys.stderr
+console = logging.StreamHandler()
+console.setLevel(logging.INFO)
+# set a format which is simpler for console use
+formatter = logging.Formatter('%(levelname)-8s %(message)s')
+# tell the handler to use this format
+console.setFormatter(formatter)
+# add the handler to the root logger
+logging.getLogger().addHandler(console)
+
+logging.info('')
+logging.info('################################################')
+logging.info('############ DICOM 2 STL CONVERSION ############')
+logging.info('################################################')
+logging.info('')
+logging.info('CONVERTING ' + str(len(sub_dirs)) + ' SCANS')
+logging.info('')
 
 for sub_dir in sub_dirs:
     try:
         counter += 1
-        print('##### PROCESSING SCAN # : ', counter)
-        print('')
+        logging.info(str('##### PROCESSING SCAN # : ' + str(counter)))
+        logging.info('')
 
         begin_time = datetime.datetime.now()
         fname = [parent_dir[0] + '/' + sub_dir]
@@ -221,7 +243,7 @@ for sub_dir in sub_dirs:
         print("")
         if tempDir == "":
             tempDir = tempfile.mkdtemp()
-        print("Temp dir: ", tempDir)
+        logging.info("Temp dir: " + tempDir)
 
         if tissueType:
             # Convert tissue type name to threshold values
@@ -240,16 +262,16 @@ for sub_dir in sub_dirs:
 
         if doubleThreshold:
             # check that there are 4 threshold values.
-            print("Thresholds: ", thresholds)
+            logging.info("Thresholds: " + str(thresholds))
             if len(thresholds) != 4:
-                print("Error: Threshold is not of size 4.", thresholds)
+                logging.error("Error: Threshold is not of size 4." + str(thresholds))
                 sys.exit(3)
         else:
-            print("Isovalue = ", isovalue)
+            logging.info("Isovalue = " + str(isovalue))
 
 
         if len(fname) == 0:
-            print("Error: no input given.")
+            logging.error("Error: no input given.")
             sys.exit(4)
 
         if zipfile.is_zipfile(fname[0]):
@@ -262,9 +284,9 @@ for sub_dir in sub_dirs:
         else:
             l = len(fname)
             if l > 1:
-                print("File names: ", fname[0], fname[1], "...", fname[l-1], "\n")
+                logging.info("File names: ", fname[0], fname[1], "...", fname[l-1], "\n")
             else:
-                print("File names: ", fname, "\n")
+                logging.info("File names: ", fname, "\n")
 
         import SimpleITK as sitk
 
@@ -290,8 +312,8 @@ for sub_dir in sub_dirs:
         else:
             if dirFlag:
                 if verbose:
-                    print("directory")
-                    print(fname[0])
+                    logging.info("directory")
+                    logging.info(fname[0])
                 img, modality = dicomutils.loadLargestSeries(fname[0])
 
             else:
@@ -322,7 +344,7 @@ for sub_dir in sub_dirs:
             # SimpleITK version 0.8.0 or later.  For earlier versions there is no GetMetaDataKeys method
 
             if modality.find("CT") == -1:
-                print("Imaging modality is not CT.  Exiting.")
+                logging.error("Imaging modality is not CT.  Exiting.")
                 sys.exit(1)
 
 
@@ -417,11 +439,11 @@ for sub_dir in sub_dirs:
         gc.collect()
 
         if verbose:
-            print("\nImage for isocontouring")
-            print(img.GetSize())
-            print(img.GetPixelIDTypeAsString())
-            print(img.GetSpacing())
-            print(img.GetOrigin())
+            logging.info("Image for isocontouring")
+            logging.info(str(img.GetSize()))
+            logging.info(str(img.GetPixelIDTypeAsString()))
+            logging.info(str(img.GetSpacing()))
+            logging.info(str(img.GetOrigin()))
             if verbose > 1:
                 print(img)
             print("")
@@ -492,24 +514,25 @@ for sub_dir in sub_dirs:
             shutil.rmtree(tempDir)
             tempDir = ""
 
-        print("")
-        print('#####')
-        print('STL FILE SAVED')
-        print('Execution Time: ', datetime.datetime.now() - begin_time)
-        print("Progress %: ", "{0:.0%}".format(counter/len(sub_dirs)))
-        print('#####')
-        print("")
+        logging.info("")
+        logging.info('#####')
+        logging.info('STL FILE SAVED: ' + outname_subdir)
+        logging.info('Execution Time: ' + str(datetime.datetime.now() - begin_time))
+        logging.info(str("Progress %:  {0:.0%}".format(counter/len(sub_dirs))))
+        logging.info('#####')
+        logging.info("")
         print("")
 
     except Exception as e:
         errors += 1
-        logf = open(logfname, 'a')
-        logf.write("Error procesing file {0}: {1}\n\n".format(fname[0], str(e)))
-        logf.close()
+        #logf = open(logfname, 'a')
+        logging.error(str("Error procesing file {0}: {1}\n\n".format(fname[0], str(e))))
+        #logf.close()
         continue
 
-print('################################################')
-print('BATCH PROCESSING COMPLETED')
-print((counter - errors), ' SCANS PROCESSED')
-print('TOTAL EXECUTION TIME: ', datetime.datetime.now() - start)
-print('################################################')
+logging.info('################################################')
+logging.info('BATCH PROCESSING COMPLETED')
+logging.info(str(counter - errors) + ' SCANS PROCESSED')
+logging.info(str(errors) + ' ERRORS FOUND' )
+logging.info('TOTAL EXECUTION TIME: ' + str(datetime.datetime.now() - start))
+logging.info('################################################')
