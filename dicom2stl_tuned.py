@@ -85,6 +85,7 @@ def usage():
         -c, --clean         Clean up temp files
         -T string, --temp string      Directory to place temporary files
         -s string, --search string    Dicom series search string
+        --qualityt          Threshold of slices # - to omit low quaility studies (Default=100)
 
         Volume processing options:
 
@@ -110,11 +111,10 @@ def usage():
 #
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "vDhacli:s:t:d:o:m:T:",
+    opts, args = getopt.getopt(sys.argv[1:], "vDhacli:s:t:d:o:m:T:q:",
                                ["verbose", "help", "debug", "anisotropic", "clean", "ct", "isovalue=", "search=", "type=",
                                 "double=", "disable=", "enable=", "largest", "metadata", "rotaxis=", "rotangle=", "smooth=",
-
-                                "reduce=", "temp="])
+                                "reduce=", "temp=", "qualityt="])
 except getopt.GetoptError as err:
     print(str(err))
     usage()
@@ -170,6 +170,8 @@ for o, a in opts:
         options.append("no"+a)
     elif o in ("--enable"):
         options.append(a)
+    elif o in ("-q", "--qualityt"):
+        LOWQUALITY_SLICES_TH = int(a)
     else:
         assert False, "unhandled options"
 
@@ -229,6 +231,8 @@ logging.info('')
 logging.info('################################################')
 logging.info('############ DICOM 2 STL CONVERSION ############')
 logging.info('################################################')
+logging.info('')
+logging.info('LOW QUAILITY (SLICES #) THRESHOLD: ' + str(LOWQUALITY_SLICES_TH))
 logging.info('')
 logging.info('CONVERTING ' + str(len(sub_dirs)) + ' SCANS')
 logging.info('')

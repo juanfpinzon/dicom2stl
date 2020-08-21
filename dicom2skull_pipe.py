@@ -10,16 +10,17 @@ def main(argv):
     dicom_dir = ''
     output = ''
     isovalue = 150
+    lowq_threshold = 100
 
     try:
-        opts, args = getopt.getopt(argv,"hi:o:n:v",["ifolder=","ofolder=","noclean","value="])
+        opts, args = getopt.getopt(argv,"hi:o:n:v:q:",["ifolder=","ofolder=","noclean","value=", "qualityt="])
     except getopt.GetoptError:
-        print('USAGE: dicom2skull_pipe.py -i <input_dicom_folder> -o <output_folder> -n <no_clean> -v <num>')
+        print('USAGE: dicom2skull_pipe.py -i <input_dicom_folder> -o <output_folder> -n <no_clean> --value <num> --qualityt <num>')
         sys.exit()
         exit()
     for opt, arg in opts:
         if opt == '-h':
-            print('USAGE: dicom2skull_pipe.py -i <input_dicom_folder> -o <output_folder> -n <no_clean> -v <num>')
+            print('USAGE: dicom2skull_pipe.py -i <input_dicom_folder> -o <output_folder> -n <no_clean> --value <num> --qualityt <num>')
             sys.exit()
         elif opt in ("-i", "--ifolder"):
             dicom_dir = arg
@@ -29,6 +30,8 @@ def main(argv):
             clean_tmp = False
         elif opt in ("-v", "--value"):
             isovalue = float(arg)
+        elif opt in ("-q", "--qualityt"):
+            lowq_threshold = int(arg)
 
     # temporary directory to store stl 1st stage files:
     pwd = os.getcwd()
@@ -37,7 +40,7 @@ def main(argv):
         os.makedirs(tmp_dir)    
 
     # Executing 1st stage: dicom2stl:
-    os.system(f"python3 dicom2stl_tuned.py -c -i {isovalue} -o {tmp_dir} {dicom_dir}")
+    os.system(f"python3 dicom2stl_tuned.py -c -i {isovalue} -q {lowq_threshold} -o {tmp_dir} {dicom_dir}")
 
     # Executing 2nd stage: Skull-extraction:
     os.system(f"python3 skull_extraction.py -i {tmp_dir} -o {output}")
