@@ -31,7 +31,7 @@ Novosibirsk, Russia
 
 from __future__ import print_function
 import sys, os, getopt, time, gc, glob, math, datetime, logging
-import zipfile, tempfile, shutil
+import zipfile, tempfile, shutil, pydicom
 
 start = datetime.datetime.now()
 
@@ -197,12 +197,14 @@ for x in options:
 
 
 # Process all subfolders of given input folder
+patientsID_log = []
 parent_dir = args
 dirs = os.listdir(parent_dir[0])
 sub_dirs = [dir_ for dir_ in dirs if not dir_.startswith('.')]
 counter = 0
 errors = 0
 lowq = 0
+duplicate_count = 0
 
 # Setting up Logging
 
@@ -246,6 +248,9 @@ for sub_dir in sub_dirs:
         begin_time = datetime.datetime.now()
         fname = [parent_dir[0] + '/' + sub_dir]
         outname_subdir = outname + sub_dir + '.stl'
+
+        # dcm files identification for loading pydicom metadata
+        dcms = os.listdir(fname[0])
 
         #print("")
         if tempDir == "":
@@ -364,6 +369,20 @@ for sub_dir in sub_dirs:
             shutil.rmtree(tempDir)
             tempDir = ""
             continue
+
+        # Duplicates verification
+        single_dcm = fname[0] + '/' + dcms[0]
+        pydicom_meta = pydicom.dcmread(single_dcm)
+        patiendID = pydicom_meta.PatientID
+        if patiendID in patientsID_log:
+            duplicate_count += 1
+            logging.warning('Patient ' + str(patiendID) + ' already processed.')
+            logging.warning('OMMITING THIS STUDY')
+            logging.info('')
+            print('')
+            continue
+        else:
+            patientsID_log.append(patiendID)
 
 
         #vtkname =  tempDir+"/vol0.vtk"
@@ -549,8 +568,9 @@ for sub_dir in sub_dirs:
 
 logging.info('################################################')
 logging.info('BATCH PROCESSING COMPLETED')
-logging.info(str(counter - errors - lowq) + ' SCANS PROCESSED')
+logging.info(str(counter - errors - lowq - duplicate_count) + ' SCANS PROCESSED')
 logging.info(str(lowq) + ' SCANS OMMITED DUE TO LOW QUALITY')
+logging.info(str(duplicate_count) + ' DUPLICATE PATIENT SCANS OMMITED')
 logging.info(str(errors) + ' ERRORS FOUND' )
 logging.info('TOTAL EXECUTION TIME: ' + str(datetime.datetime.now() - start))
 logging.info('################################################')
