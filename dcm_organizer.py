@@ -48,19 +48,23 @@ def main(argv):
     #excluding already processed files
     input_dcms = [x for x in input_dcms if x not in processed_dcms]
 
-    for i, dcm in tqdm(enumerate(input_dcms), total=len(input_dcms)):
-        ds = pydicom.dcmread(SRC + input_dcms[i])
-        if ds.Modality == MODALITY and ds.BodyPartExamined == BODYPART:
-            out_dir = OUT + ds.SeriesInstanceUID
-            src_path = SRC + dcm
-            out_path = out_dir + '/' + dcm
-            if not os.path.exists(out_dir):
-                os.makedirs(out_dir)
-            shutil.move(src_path, out_path)
-            counter += 1
-            if ds.SeriesInstanceUID not in seriesUID:
-                seriesUID.append(ds.SeriesInstanceUID)
-
+    try:
+        for i, dcm in tqdm(enumerate(input_dcms), total=len(input_dcms)):
+            ds = pydicom.dcmread(SRC + input_dcms[i])
+            if ds.Modality == MODALITY and ds.BodyPartExamined == BODYPART:
+                out_dir = OUT + ds.SeriesInstanceUID
+                src_path = SRC + dcm
+                out_path = out_dir + '/' + dcm
+                if not os.path.exists(out_dir):
+                    os.makedirs(out_dir)
+                shutil.move(src_path, out_path)
+                counter += 1
+                if ds.SeriesInstanceUID not in seriesUID:
+                    seriesUID.append(ds.SeriesInstanceUID)
+    except Exception as e:
+        print('Error processing file: ', dcm, str(e), '\n')
+        continue
+    
     #updating and writing the log
     processed_dcms.update(input_dcms)
         
