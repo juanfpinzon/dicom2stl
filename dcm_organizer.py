@@ -16,7 +16,7 @@ def main(argv):
 
     BODYPART = 'HEAD'
     MODALITY = 'CT'
-    LOG_FNAME = 'logs/dcm_org.log'
+    LOG_FNAME = os.getcwd() + '/dicom2stl/logs/dcm_org.log'
     seriesUID = []
     counter = 0
 
