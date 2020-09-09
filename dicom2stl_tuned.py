@@ -31,7 +31,7 @@ Novosibirsk, Russia
 
 from __future__ import print_function
 import sys, os, getopt, time, gc, glob, math, datetime, logging
-import zipfile, tempfile, shutil, pydicom
+import zipfile, tempfile, shutil, pydicom, json
 
 start = datetime.datetime.now()
 
@@ -197,7 +197,6 @@ for x in options:
 
 
 # Process all subfolders of given input folder
-patientsID_log = []
 parent_dir = args
 dirs = os.listdir(parent_dir[0])
 sub_dirs = [dir_ for dir_ in dirs if not dir_.startswith('.')]
@@ -208,7 +207,7 @@ duplicate_count = 0
 
 # Setting up Logging
 
-logs_dir = os.getcwd() + '/logs/'
+logs_dir = os.getcwd() + '/dicom2stl/logs/'
 if not os.path.exists(logs_dir):
     os.makedirs(logs_dir)
 logfname = logs_dir + 'log_dicom2stl_' + str(start) + '.log'
@@ -228,6 +227,14 @@ formatter = logging.Formatter('%(levelname)-8s %(message)s')
 console.setFormatter(formatter)
 # add the handler to the root logger
 logging.getLogger().addHandler(console)
+
+# PatientsID Logging
+patientsID_log_fname = logs_dir + 'patientsID_log.log'
+try:
+    with open(patientsID_log_fname, 'r') as infile:
+        patientsID_log = set(json.load(infile))
+except:
+    patientsID_log = set()
 
 logging.info('')
 logging.info('################################################')
@@ -382,7 +389,7 @@ for sub_dir in sub_dirs:
             print('')
             continue
         else:
-            patientsID_log.append(patiendID)
+            patientsID_log.add(patiendID)
 
 
         #vtkname =  tempDir+"/vol0.vtk"
@@ -565,6 +572,10 @@ for sub_dir in sub_dirs:
         logging.error(str("Error procesing file {0}: {1}\n\n".format(fname[0], str(e))))
         #logf.close()
         continue
+
+# Save patientsID Log
+with open(patientsID_log_fname, 'w') as infile:
+    json.dump(list(patientsID_log), infile)
 
 logging.info('################################################')
 logging.info('BATCH PROCESSING COMPLETED')
