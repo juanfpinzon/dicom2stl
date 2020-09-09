@@ -6,11 +6,13 @@
 # Author: Juan F. Pinzon, Academgene LLC
 # 09.2020
 
-import os, shutil, sys, getopt, json
+import os, shutil, sys, getopt, json, datetime
 import pydicom
 from tqdm import tqdm
 
 def main(argv):
+
+    start = datetime.datetime.now()
 
     BODYPART = 'HEAD'
     MODALITY = 'CT'
@@ -67,7 +69,8 @@ def main(argv):
 
     
     print(counter, ' files organized')
-    print('Into ', len(seriesUID), ' unique Series subdirectories')
+    print('Into ', len(seriesUID), ' unique Series sub-directories')
+    print('Execution Time: ', datetime.datetime.now() - start)
 
 if __name__ == "__main__":
    main(sys.argv[1:])
