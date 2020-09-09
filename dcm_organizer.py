@@ -48,8 +48,8 @@ def main(argv):
     #excluding already processed files
     input_dcms = [x for x in input_dcms if x not in processed_dcms]
 
-    try:
-        for i, dcm in tqdm(enumerate(input_dcms), total=len(input_dcms)):
+    for i, dcm in tqdm(enumerate(input_dcms), total=len(input_dcms)):
+        try:
             ds = pydicom.dcmread(SRC + input_dcms[i])
             if ds.Modality == MODALITY and ds.BodyPartExamined == BODYPART:
                 out_dir = OUT + ds.SeriesInstanceUID
@@ -61,10 +61,10 @@ def main(argv):
                 counter += 1
                 if ds.SeriesInstanceUID not in seriesUID:
                     seriesUID.append(ds.SeriesInstanceUID)
-    except Exception as e:
-        print('Error processing file: ', dcm, str(e), '\n')
-        continue
-    
+        except Exception as e:
+            print('Error processing file: ', dcm, str(e), '\n')
+            continue
+
     #updating and writing the log
     processed_dcms.update(input_dcms)
         
