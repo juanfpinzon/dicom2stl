@@ -6,7 +6,7 @@
 # Author: Juan F. Pinzon, Academgene LLC
 # 09.2020
 
-import os, shutil, sys, getopt, json, datetime
+import os, shutil, sys, getopt, json, datetime, logging
 import pydicom
 from tqdm import tqdm
 
@@ -50,6 +50,29 @@ def main(argv):
     SUBDIRS = False
     BODYPART = 'HEAD'
     MODALITY = 'CT'
+
+    # Setting up Logging
+
+    logs_dir = os.getcwd() + '/logs/'
+    if not os.path.exists(logs_dir):
+        os.makedirs(logs_dir)
+    run_log_name = logs_dir + 'log_dcm-organizer_' + str(start) + '.log'
+
+    # set up logging to file - see previous section for more details
+    logging.basicConfig(level=logging.DEBUG,
+                        format='%(asctime)s %(levelname)-8s %(message)s',
+                        datefmt='%d-%m-%y %H:%M',
+                        filename=run_log_name,
+                        filemode='w')
+    # define a Handler which writes INFO messages or higher to the sys.stderr
+    console = logging.StreamHandler()
+    console.setLevel(logging.INFO)
+    # set a format which is simpler for console use
+    formatter = logging.Formatter('%(levelname)-8s %(message)s')
+    # tell the handler to use this format
+    console.setFormatter(formatter)
+    # add the handler to the root logger
+    logging.getLogger().addHandler(console)
 
     #loading the log file in order to exclude already processed series
     try:
@@ -101,13 +124,14 @@ def main(argv):
         json.dump(list(processed_dcms), infile)
 
     
-    print(counter, ' files organized')
-    print('Into ', len(seriesUID), ' unique Series sub-directories')
+    logging.info('')
+    logging.info(str(counter) + ' files organized')
+    logging.info('Into ' + str(len(seriesUID)) + ' unique Series sub-directories')
     try:
-        print('# of Errors found: ', error_count, ' - {0:.0%}'.format(error_count/counter))
+        logging.info('# of Errors found: ' + str(error_count) + str(' - {0:.0%}'.format(error_count/counter)))
     except ZeroDivisionError:
-        print('0 Errors found')
-    print('Execution Time: ', datetime.datetime.now() - start)
+        logging.info('0 Errors found')
+    logging.info('Execution Time: ' + str(datetime.datetime.now() - start))
 
 if __name__ == "__main__":
     main(sys.argv[1:])
