@@ -207,7 +207,7 @@ duplicate_count = 0
 
 # Setting up Logging
 
-logs_dir = os.getcwd() + '/dicom2stl/logs/'
+logs_dir = os.getcwd() + '/logs/'
 if not os.path.exists(logs_dir):
     os.makedirs(logs_dir)
 logfname = logs_dir + 'log_dicom2stl_' + str(start) + '.log'
