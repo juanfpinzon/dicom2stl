@@ -16,9 +16,10 @@ def main(argv):
 
     BODYPART = 'HEAD'
     MODALITY = 'CT'
-    LOG_FNAME = os.getcwd() + '/dicom2stl/logs/dcm_org.log'
+    LOG_FNAME = os.getcwd() + '/logs/dcm_org.log'
     seriesUID = []
     counter = 0
+    error_count = 0
 
     try:
         opts, args = getopt.getopt(argv,"hi:o:",["ifolder=","ofolder="])
@@ -59,14 +60,15 @@ def main(argv):
                     os.makedirs(out_dir)
                 shutil.move(src_path, out_path)
                 counter += 1
-                if ds.SeriesInstanceUID not in seriesUID:
-                    seriesUID.append(ds.SeriesInstanceUID)
+                if ds.SeriesInstanceUID not in seriesUID: 
+                    seriesUID.append(ds.SeriesInstanceUID)  
         except Exception as e:
             print('Error processing file: ', dcm, str(e), '\n')
+            error_count += 1
             continue
 
     #updating and writing the log
-    processed_dcms.update(input_dcms)
+    processed_dcms.update(seriesUID)
         
     with open(LOG_FNAME, 'w') as infile:
         json.dump(list(processed_dcms), infile)
@@ -74,6 +76,7 @@ def main(argv):
     
     print(counter, ' files organized')
     print('Into ', len(seriesUID), ' unique Series sub-directories')
+    print('# of Errors found: ', error_count, ' - {0:.0%}'.format(error_count/counter))
     print('Execution Time: ', datetime.datetime.now() - start)
 
 if __name__ == "__main__":
