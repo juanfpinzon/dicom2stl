@@ -10,40 +10,12 @@ import os, shutil, sys, getopt, json, datetime
 import pydicom
 from tqdm import tqdm
 
-def main(argv):
 
-    start = datetime.datetime.now()
+def organizer(SRC, OUT, MODALITY, BODYPART, LOG_FNAME, seriesUID, processed_dcms):
 
-    BODYPART = 'HEAD'
-    MODALITY = 'CT'
-    LOG_FNAME = os.getcwd() + '/logs/dcm_org.log'
-    seriesUID = []
     counter = 0
     error_count = 0
-
-    try:
-        opts, args = getopt.getopt(argv,"hi:o:",["ifolder=","ofolder="])
-    except getopt.GetoptError:
-        print('USAGE: dcm_organizer.py -i <input_dicom_folder> -o <output_folder> ')
-        sys.exit()
-        exit()
-
-    for opt, arg in opts:
-        if opt == '-h':
-            print('USAGE: dcm_organizer.py -i <input_dicom_folder> -o <output_folder>')
-            sys.exit()
-        elif opt in ("-i", "--ifolder"):
-            SRC = arg
-        elif opt in ("-o", "--ofolder"):
-            OUT = arg
-
-    #loading the log file in order to exclude already processed series
-    try:
-        with open(LOG_FNAME, 'r') as infile:
-            processed_dcms = set(json.load(infile))
-    except:
-        processed_dcms = set()
-
+    
     input_dcms = os.listdir(SRC)
 
     #excluding already processed files
@@ -66,9 +38,64 @@ def main(argv):
             print('Error processing file: ', dcm, str(e), '\n')
             error_count += 1
             continue
+    
+    return input_dcms, seriesUID, counter, error_count
+
+def main(argv):
+
+    start = datetime.datetime.now()
+
+    LOG_FNAME = os.getcwd() + '/logs/organized_dcms.log'
+    seriesUID = []
+    SUBDIRS = False
+    BODYPART = 'HEAD'
+    MODALITY = 'CT'
+
+    #loading the log file in order to exclude already processed series
+    try:
+        with open(LOG_FNAME, 'r') as infile:
+            processed_dcms = set(json.load(infile))
+    except:
+        processed_dcms = set()
+    #print(processed_dcms)
+
+    try:
+        opts, args = getopt.getopt(argv,"hi:o:s:",["ifolder=","ofolder=","subdirs"])
+    except getopt.GetoptError:
+        print('USAGE: dcm_organizer.py -i <input_dicom_folder> -o <output_folder> -s <files are in subdirs>')
+        sys.exit()
+        exit()
+
+    for opt, arg in opts:
+        if opt == '-h':
+            print('USAGE: dcm_organizer.py -i <input_dicom_folder> -o <output_folder> -s <files are in subdirs>')
+            sys.exit()
+        elif opt in ("-i", "--ifolder"):
+            SRC = arg
+        elif opt in ("-o", "--ofolder"):
+            OUT = arg
+        elif opt in ("-s", "--subdirs"):
+            SUBDIRS = True
+
+    # call organizer function:
+    if SUBDIRS:
+        counter, error_count = 0, 0
+        sub_dirs = os.listdir(SRC)
+        for sub_dir in tqdm(sub_dirs, total=len(sub_dirs)):
+            seriesUID = []
+            SRC_subdir = SRC + sub_dir + '/'
+            input_dcms_subdir, seriesUID_subdir, counter_subdir, error_count_subdir = organizer(SRC_subdir, OUT, MODALITY,\
+                 BODYPART, LOG_FNAME, seriesUID, processed_dcms)
+            processed_dcms.update(input_dcms_subdir)
+            seriesUID.append(seriesUID_subdir)
+            counter += counter_subdir
+            error_count += error_count_subdir
+    else:
+        input_dcms, seriesUID, counter, error_count = organizer(SRC, OUT, MODALITY, BODYPART, LOG_FNAME, seriesUID, processed_dcms)
+        processed_dcms.update(input_dcms)
 
     #updating and writing the log
-    processed_dcms.update(seriesUID)
+    #processed_dcms.update(input_dcms)
         
     with open(LOG_FNAME, 'w') as infile:
         json.dump(list(processed_dcms), infile)
@@ -76,8 +103,11 @@ def main(argv):
     
     print(counter, ' files organized')
     print('Into ', len(seriesUID), ' unique Series sub-directories')
-    print('# of Errors found: ', error_count, ' - {0:.0%}'.format(error_count/counter))
+    try:
+        print('# of Errors found: ', error_count, ' - {0:.0%}'.format(error_count/counter))
+    except ZeroDivisionError:
+        print('0 Errors found')
     print('Execution Time: ', datetime.datetime.now() - start)
 
 if __name__ == "__main__":
-   main(sys.argv[1:])
+    main(sys.argv[1:])
