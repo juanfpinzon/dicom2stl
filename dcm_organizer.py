@@ -11,12 +11,15 @@ import pydicom
 from tqdm import tqdm
 
 
-def organizer(SRC, OUT, MODALITY, BODYPART, LOG_FNAME, seriesUID, processed_dcms):
+def organizer(SRC, OUT, MODALITY, BODYPART, LOG_FNAME, processed_dcms):
 
+    totalFiles = 0
     counter = 0
     error_count = 0
+    UID_count = 0
     
     input_dcms = os.listdir(SRC)
+    totalFiles = len(input_dcms)
 
     #excluding already processed files
     input_dcms = [x for x in input_dcms if x not in processed_dcms]
@@ -30,23 +33,24 @@ def organizer(SRC, OUT, MODALITY, BODYPART, LOG_FNAME, seriesUID, processed_dcms
                 out_path = out_dir + '/' + dcm
                 if not os.path.exists(out_dir):
                     os.makedirs(out_dir)
+                    UID_count += 1
                 shutil.move(src_path, out_path)
                 counter += 1
-                if ds.SeriesInstanceUID not in seriesUID: 
-                    seriesUID.append(ds.SeriesInstanceUID)  
+                #if ds.SeriesInstanceUID not in seriesUID: 
+                #    seriesUID.append(ds.SeriesInstanceUID)  
         except Exception as e:
             #print('Error processing file: ', dcm, str(e), '\n')
             error_count += 1
             continue
     
-    return input_dcms, seriesUID, counter, error_count
+    return input_dcms, counter, error_count, totalFiles, UID_count
 
 def main(argv):
 
     start = datetime.datetime.now()
 
     LOG_FNAME = os.getcwd() + '/logs/organized_dcms.log'
-    seriesUID = []
+    #seriesUID = []
     SUBDIRS = False
     BODYPART = 'HEAD'
     MODALITY = 'CT'
@@ -108,23 +112,25 @@ def main(argv):
 
     # call organizer function:
     if SUBDIRS:
-        counter, error_count = 0, 0
+        counter, error_count, totalFiles, UID_count = 0, 0, 0, 0
         sub_dirs = os.listdir(SRC)
         for sub_dir in tqdm(sub_dirs, total=len(sub_dirs)):
             logging.info('Procesing Directory: ' + sub_dir)
-            seriesUID = []
+            #seriesUID = []
             SRC_subdir = SRC + sub_dir + '/'
-            input_dcms_subdir, seriesUID_subdir, counter_subdir, error_count_subdir = organizer(SRC_subdir, OUT, MODALITY,\
-                 BODYPART, LOG_FNAME, seriesUID, processed_dcms)
+            input_dcms_subdir, counter_subdir, error_count_subdir, totalFiles_subdir, UID_count_subdir = organizer(SRC_subdir, \
+                OUT, MODALITY, BODYPART, LOG_FNAME, processed_dcms)
             # updating and writing the log
             processed_dcms.update(input_dcms_subdir)
             with open(LOG_FNAME, 'w') as infile:
                 json.dump(list(processed_dcms), infile)
-            seriesUID.append(seriesUID_subdir)
+            #seriesUID.append(seriesUID_subdir)
             counter += counter_subdir
             error_count += error_count_subdir
+            totalFiles += totalFiles_subdir
+            UID_count += UID_count_subdir
     else:
-        input_dcms, seriesUID, counter, error_count = organizer(SRC, OUT, MODALITY, BODYPART, LOG_FNAME, seriesUID, processed_dcms)
+        input_dcms, counter, error_count, totalFiles, UID_count = organizer(SRC, OUT, MODALITY, BODYPART, LOG_FNAME, processed_dcms)
         processed_dcms.update(input_dcms)
         with open(LOG_FNAME, 'w') as infile:
             json.dump(list(processed_dcms), infile)
@@ -133,10 +139,11 @@ def main(argv):
     #processed_dcms.update(input_dcms)
         
     logging.info('')
+    logging.info(str(totalFiles) + ' files scanned')
     logging.info(str(counter) + ' files organized')
-    logging.info('Into ' + str(len(seriesUID)) + ' unique Series sub-directories')
+    logging.info('Into ' + str(UID_count) + ' unique Series sub-directories')
     try:
-        logging.info('# of Errors found: ' + str(error_count) + str(' - {0:.0%}'.format(error_count/counter)))
+        logging.info('# of Errors found: ' + str(error_count) + str(' - {0:.0%}'.format(error_count/totalFiles)))
     except ZeroDivisionError:
         logging.info('0 Errors found')
     logging.info('Execution Time: ' + str(datetime.datetime.now() - start))
