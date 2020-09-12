@@ -35,7 +35,7 @@ def organizer(SRC, OUT, MODALITY, BODYPART, LOG_FNAME, seriesUID, processed_dcms
                 if ds.SeriesInstanceUID not in seriesUID: 
                     seriesUID.append(ds.SeriesInstanceUID)  
         except Exception as e:
-            print('Error processing file: ', dcm, str(e), '\n')
+            #print('Error processing file: ', dcm, str(e), '\n')
             error_count += 1
             continue
     
@@ -83,15 +83,15 @@ def main(argv):
     #print(processed_dcms)
 
     try:
-        opts, args = getopt.getopt(argv,"hi:o:s:",["ifolder=","ofolder=","subdirs"])
+        opts, args = getopt.getopt(argv,"hi:o:s:b:m:",["ifolder=","ofolder=","subdirs","bodypart=", "modality="])
     except getopt.GetoptError:
-        print('USAGE: dcm_organizer.py -i <input_dicom_folder> -o <output_folder> -s <files are in subdirs>')
+        print('USAGE: dcm_organizer.py -i <input_dicom_folder> -o <output_folder> -s <files are in subdirs> -b <BodyPart> -m <Modality>')
         sys.exit()
         exit()
 
     for opt, arg in opts:
         if opt == '-h':
-            print('USAGE: dcm_organizer.py -i <input_dicom_folder> -o <output_folder> -s <files are in subdirs>')
+            print('USAGE: dcm_organizer.py -i <input_dicom_folder> -o <output_folder> -s <files are in subdirs> -b <BodyPart> -m <Modality>')
             sys.exit()
         elif opt in ("-i", "--ifolder"):
             SRC = arg
@@ -99,31 +99,39 @@ def main(argv):
             OUT = arg
         elif opt in ("-s", "--subdirs"):
             SUBDIRS = True
+        elif opt in ("-b", "--bodypart"):
+            BODYPART = str(arg)
+        elif opt in ("-m", "--modality"):
+            MODALITY = str(arg)
+
+    #print(BODYPART, MODALITY)
 
     # call organizer function:
     if SUBDIRS:
         counter, error_count = 0, 0
         sub_dirs = os.listdir(SRC)
         for sub_dir in tqdm(sub_dirs, total=len(sub_dirs)):
+            logging.info('Procesing Directory: ' + sub_dir)
             seriesUID = []
             SRC_subdir = SRC + sub_dir + '/'
             input_dcms_subdir, seriesUID_subdir, counter_subdir, error_count_subdir = organizer(SRC_subdir, OUT, MODALITY,\
                  BODYPART, LOG_FNAME, seriesUID, processed_dcms)
+            # updating and writing the log
             processed_dcms.update(input_dcms_subdir)
+            with open(LOG_FNAME, 'w') as infile:
+                json.dump(list(processed_dcms), infile)
             seriesUID.append(seriesUID_subdir)
             counter += counter_subdir
             error_count += error_count_subdir
     else:
         input_dcms, seriesUID, counter, error_count = organizer(SRC, OUT, MODALITY, BODYPART, LOG_FNAME, seriesUID, processed_dcms)
         processed_dcms.update(input_dcms)
+        with open(LOG_FNAME, 'w') as infile:
+            json.dump(list(processed_dcms), infile)
 
-    #updating and writing the log
+    # updating and writing the log
     #processed_dcms.update(input_dcms)
         
-    with open(LOG_FNAME, 'w') as infile:
-        json.dump(list(processed_dcms), infile)
-
-    
     logging.info('')
     logging.info(str(counter) + ' files organized')
     logging.info('Into ' + str(len(seriesUID)) + ' unique Series sub-directories')
