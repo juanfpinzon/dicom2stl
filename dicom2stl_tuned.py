@@ -372,9 +372,12 @@ for sub_dir in sub_dirs:
             lowq += 1
             logging.warning('The Series only contains: ' + str(slices_amount) + ' slices')
             logging.warning('Number of Slices in series is to low, ommiting conversion.')
-            logging.info("")
+            logging.info('')
+            logging.info(str("##### Progress %:  {0:.0%}".format(counter/len(sub_dirs))))
+            logging.info('')
             shutil.rmtree(tempDir)
             tempDir = ""
+            print('')
             continue
 
         # Duplicates verification
@@ -386,6 +389,10 @@ for sub_dir in sub_dirs:
             logging.warning('Patient ' + str(patiendID) + ' already processed.')
             logging.warning('OMMITING THIS STUDY')
             logging.info('')
+            logging.info(str("##### Progress %:  {0:.0%}".format(counter/len(sub_dirs))))
+            logging.info('')
+            shutil.rmtree(tempDir)
+            tempDir = ""
             print('')
             continue
         else:
