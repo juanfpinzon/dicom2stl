@@ -55,7 +55,7 @@ def getAllSeriesQLTYThrehsold(dirs, LOWQUALITY_SLICES_TH) :
     seriessets = []
     for d in dirs:
         series = isr.GetGDCMSeriesIDs(d)
-        for s in series:
+        for s in tqdm(series, total=len(series)):
             files = isr.GetGDCMSeriesFileNames(d, s)
             if len(files) >= LOWQUALITY_SLICES_TH:
                 print(s, d, len(files))
@@ -75,7 +75,7 @@ def getModality(img):
 
 def getBodyPart(img):
     """Get an image's modality, as stored in the Dicom meta data."""
-    modality = ""
+    bodyPart = ""
     if (sitk.Version.MinorVersion() > 8) or (sitk.Version.MajorVersion() > 0):
         try:
             bodyPart = img.GetMetaData("0018|0015")
@@ -151,7 +151,11 @@ def loadSeries(dicomdir, LOWQUALITY_SLICES_TH):
             imgs.append(img)
             #count += 1
 
-    return imgs
+        # for testing:
+        if len(imgs) == 5:
+            sys.exit()
+
+    return imgs, len(seriessets)
 
 
 def loadZipDicom(name, tempDir):
