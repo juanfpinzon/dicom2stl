@@ -72,6 +72,15 @@ def getModality(img):
             modality = ""
     return modality
 
+def getBodyPart(img):
+    """Get an image's modality, as stored in the Dicom meta data."""
+    modality = ""
+    if (sitk.Version.MinorVersion() > 8) or (sitk.Version.MajorVersion() > 0):
+        try:
+            bodyPart = img.GetMetaData("0018|0015")
+        except:
+            bodyPart = ""
+    return bodyPart
 
 def loadLargestSeries(dicomdir):
     """
@@ -116,31 +125,32 @@ def loadSeries(dicomdir, LOWQUALITY_SLICES_TH):
     """
 
     files, dirs = scanDirForDicom(dicomdir)
-    seriessets = getAllSeries(dirs)
-    maxsize = 0
-    maxindex = -1
+    seriessets = getAllSeriesQLTYThrehsold(dirs, LOWQUALITY_SLICES_TH)
+    #maxsize = 0
+    #maxindex = -1
 
-    count = 0
-    for ss in seriessets:
-        size = len(ss[2])
-        if size > maxsize:
-            maxsize = size
-            maxindex = count
-        count = count + 1
-    if maxindex < 0:
+    imgs = []
+
+    #count = 0
+    if len(seriessets) == 0:
         print("Error:  no series found")
         return None
-    isr = sitk.ImageSeriesReader()
-    ss = seriessets[maxindex]
-    files = ss[2]
-    isr.SetFileNames(files)
-    print("\nLoading series", ss[0], "in directory", ss[1])
-    img = isr.Execute()
 
-    firstslice = sitk.ReadImage(files[0])
-    modality = getModality(firstslice)
+    for serie in seriessets:
+        isr = sitk.ImageSeriesReader()
+        files = serie[2]
+        isr.SetFileNames(files)
 
-    return img, modality
+        firstslice = sitk.ReadImage(files[0])
+        modality = getModality(firstslice)
+        bodyPart = getBodyPart(firstslice)
+
+        if modality.find("CT") == -1 and bodyPart.find("HEAD"):
+            img = isr.Execute()
+            imgs.append(img)
+            #count += 1
+
+    return imgs
 
 
 def loadZipDicom(name, tempDir):
