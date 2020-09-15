@@ -78,7 +78,7 @@ def getModality(img):
     return modality
 
 def getBodyPart(img):
-    """Get an image's modality, as stored in the Dicom meta data."""
+    """Get an image's BodyPart, as stored in the Dicom meta data."""
     bodyPart = ""
     if (sitk.Version.MinorVersion() > 8) or (sitk.Version.MajorVersion() > 0):
         try:
@@ -86,6 +86,16 @@ def getBodyPart(img):
         except:
             bodyPart = ""
     return bodyPart
+
+def getPatientID(img):
+    """Get an image's BodyPart, as stored in the Dicom meta data."""
+    patientID = ""
+    if (sitk.Version.MinorVersion() > 8) or (sitk.Version.MajorVersion() > 0):
+        try:
+            patientID = img.GetMetaData("0010|0020")
+        except:
+            patientID = ""
+    return patientID
 
 def loadLargestSeries(dicomdir):
     """
