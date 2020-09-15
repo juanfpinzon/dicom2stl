@@ -55,6 +55,8 @@ def getAllSeriesQLTYThrehsold(dirs, LOWQUALITY_SLICES_TH) :
     seriessets = []
     for d in dirs:
         series = isr.GetGDCMSeriesIDs(d)
+        #for test:
+        series = series[:6]
         for s in tqdm(series, total=len(series)):
             files = isr.GetGDCMSeriesFileNames(d, s)
             if len(files) >= LOWQUALITY_SLICES_TH:
@@ -138,7 +140,7 @@ def loadSeries(dicomdir, LOWQUALITY_SLICES_TH):
         return None
 
     # for testing:
-    seriessets = seriessets[:7]
+    #seriessets = seriessets[:7]
 
     for serie in tqdm(seriessets, total=len(seriessets)):
         isr = sitk.ImageSeriesReader()
