@@ -137,6 +137,9 @@ def loadSeries(dicomdir, LOWQUALITY_SLICES_TH):
         print("Error:  no series found")
         return None
 
+    # for testing:
+    seriessets = seriessets[:7]
+
     for serie in tqdm(seriessets, total=len(seriessets)):
         isr = sitk.ImageSeriesReader()
         files = serie[2]
@@ -151,9 +154,6 @@ def loadSeries(dicomdir, LOWQUALITY_SLICES_TH):
             imgs.append(img)
             #count += 1
 
-        # for testing:
-        if len(imgs) == 5:
-            sys.exit()
 
     return imgs, len(seriessets)
 
