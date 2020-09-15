@@ -20,6 +20,7 @@ import os
 import fnmatch
 import zipfile
 import SimpleITK as sitk
+from tqdm import tqdm
 
 
 def scanDirForDicom(dicomdir):
@@ -136,7 +137,7 @@ def loadSeries(dicomdir, LOWQUALITY_SLICES_TH):
         print("Error:  no series found")
         return None
 
-    for serie in seriessets:
+    for serie in tqdm(seriessets, total=len(seriessets)):
         isr = sitk.ImageSeriesReader()
         files = serie[2]
         isr.SetFileNames(files)
