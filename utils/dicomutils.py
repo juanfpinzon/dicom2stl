@@ -48,6 +48,19 @@ def getAllSeries(dirs):
             seriessets.append([s, d, files])
     return seriessets
 
+def getAllSeriesQLTYThrehsold(dirs, LOWQUALITY_SLICES_TH) :
+    """Get all the Dicom series in a set of directories."""
+    isr = sitk.ImageSeriesReader()
+    seriessets = []
+    for d in dirs:
+        series = isr.GetGDCMSeriesIDs(d)
+        for s in series:
+            files = isr.GetGDCMSeriesFileNames(d, s)
+            if len(files) >= LOWQUALITY_SLICES_TH:
+                print(s, d, len(files))
+                seriessets.append([s, d, files])
+    return seriessets
+
 
 def getModality(img):
     """Get an image's modality, as stored in the Dicom meta data."""
@@ -67,6 +80,39 @@ def loadLargestSeries(dicomdir):
 
     Largest means has the most slices.  It also returns the modality
     of the series.
+    """
+
+    files, dirs = scanDirForDicom(dicomdir)
+    seriessets = getAllSeries(dirs)
+    maxsize = 0
+    maxindex = -1
+
+    count = 0
+    for ss in seriessets:
+        size = len(ss[2])
+        if size > maxsize:
+            maxsize = size
+            maxindex = count
+        count = count + 1
+    if maxindex < 0:
+        print("Error:  no series found")
+        return None
+    isr = sitk.ImageSeriesReader()
+    ss = seriessets[maxindex]
+    files = ss[2]
+    isr.SetFileNames(files)
+    print("\nLoading series", ss[0], "in directory", ss[1])
+    img = isr.Execute()
+
+    firstslice = sitk.ReadImage(files[0])
+    modality = getModality(firstslice)
+
+    return img, modality
+
+def loadSeries(dicomdir, LOWQUALITY_SLICES_TH):
+    """
+    Load the largest Dicom series it finds in a recursive scan of
+    a directory.
     """
 
     files, dirs = scanDirForDicom(dicomdir)
