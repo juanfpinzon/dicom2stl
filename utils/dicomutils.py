@@ -57,7 +57,7 @@ def getAllSeriesQLTYThrehsold(dirs, LOWQUALITY_SLICES_TH) :
         series = isr.GetGDCMSeriesIDs(d)
         
         #for test:
-        series = series[:25]
+        #series = series[:25]
 
         for s in tqdm(series, total=len(series)):
             files = isr.GetGDCMSeriesFileNames(d, s)
