@@ -45,9 +45,9 @@ def main(argv):
 
     # Executing 1st stage: dicom2stl:
     if keep_duplicates:
-        os.system(f"python3 dicom2stl_tuned_wDups.py -c -i {isovalue} -q {lowq_threshold} --keep-duplicates -o {tmp_dir} {dicom_dir}")
+        os.system(f"python3 dicom2stl_tuned.py -c -i {isovalue} -q {lowq_threshold} --keep-duplicates -o {tmp_dir} {dicom_dir}")
     else:
-        os.system(f"python3 dicom2stl_tuned_wDups.py -c -i {isovalue} -q {lowq_threshold} -o {tmp_dir} {dicom_dir}")
+        os.system(f"python3 dicom2stl_tuned.py -c -i {isovalue} -q {lowq_threshold} -o {tmp_dir} {dicom_dir}")
 
     # Executing 2nd stage: Skull-extraction:
     os.system(f"python3 skull_extraction.py -i {tmp_dir} -o {output}")
