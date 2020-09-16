@@ -11,16 +11,17 @@ def main(argv):
     output = ''
     isovalue = 150
     lowq_threshold = 100
+    keep_duplicates = False
 
     try:
-        opts, args = getopt.getopt(argv,"hi:o:n:v:q:",["ifolder=","ofolder=","noclean","value=", "qualityt="])
+        opts, args = getopt.getopt(argv,"hi:o:n:v:q:k:",["ifolder=","ofolder=","noclean","value=", "qualityt=", "keep-duplicates"])
     except getopt.GetoptError:
-        print('USAGE: dicom2skull_pipe.py -i <input_dicom_folder> -o <output_folder> -n <no_clean> --value <num> --qualityt <num>')
+        print('USAGE: dicom2skull_pipe.py -i <input_dicom_folder> -o <output_folder> -n <no_clean> --value <num> --qualityt <num> --keep-duplicates')
         sys.exit()
         exit()
     for opt, arg in opts:
         if opt == '-h':
-            print('USAGE: dicom2skull_pipe.py -i <input_dicom_folder> -o <output_folder> -n <no_clean> --value <num> --qualityt <num>')
+            print('USAGE: dicom2skull_pipe.py -i <input_dicom_folder> -o <output_folder> -n <no_clean> --value <num> --qualityt <num> --keep-duplicates')
             sys.exit()
         elif opt in ("-i", "--ifolder"):
             dicom_dir = arg
@@ -32,6 +33,9 @@ def main(argv):
             isovalue = float(arg)
         elif opt in ("-q", "--qualityt"):
             lowq_threshold = int(arg)
+        elif opt in ("-k", "--keep-duplicates"):
+            keep_duplicates = True
+
 
     # temporary directory to store stl 1st stage files:
     pwd = os.getcwd()
@@ -40,7 +44,10 @@ def main(argv):
         os.makedirs(tmp_dir)    
 
     # Executing 1st stage: dicom2stl:
-    os.system(f"python3 dicom2stl_tuned.py -c -i {isovalue} -q {lowq_threshold} -o {tmp_dir} {dicom_dir}")
+    if keep_duplicates:
+        os.system(f"python3 dicom2stl_tuned_wDups.py -c -i {isovalue} -q {lowq_threshold} --keep-duplicates -o {tmp_dir} {dicom_dir}")
+    else:
+        os.system(f"python3 dicom2stl_tuned_wDups.py -c -i {isovalue} -q {lowq_threshold} -o {tmp_dir} {dicom_dir}")
 
     # Executing 2nd stage: Skull-extraction:
     os.system(f"python3 skull_extraction.py -i {tmp_dir} -o {output}")

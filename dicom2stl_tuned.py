@@ -70,6 +70,8 @@ options = []
 
 LOWQUALITY_SLICES_TH = 100
 
+WITH_DUPLICATES = False
+
 
 def usage():
     print("""
@@ -111,10 +113,10 @@ def usage():
 #
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "vDhacli:s:t:d:o:m:T:q:",
+    opts, args = getopt.getopt(sys.argv[1:], "vDhacli:s:t:d:o:m:T:q:k:",
                                ["verbose", "help", "debug", "anisotropic", "clean", "ct", "isovalue=", "search=", "type=",
                                 "double=", "disable=", "enable=", "largest", "metadata", "rotaxis=", "rotangle=", "smooth=",
-                                "reduce=", "temp=", "qualityt="])
+                                "reduce=", "temp=", "qualityt=", "keep-duplicates"])
 except getopt.GetoptError as err:
     print(str(err))
     usage()
@@ -172,6 +174,8 @@ for o, a in opts:
         options.append(a)
     elif o in ("-q", "--qualityt"):
         LOWQUALITY_SLICES_TH = int(a)
+    elif o in ("-k", "--keep-duplicates"):
+        WITH_DUPLICATES = True
     else:
         assert False, "unhandled options"
 
@@ -210,7 +214,10 @@ duplicate_count = 0
 logs_dir = os.getcwd() + '/logs/'
 if not os.path.exists(logs_dir):
     os.makedirs(logs_dir)
-logfname = logs_dir + 'log_dicom2stl_' + str(start) + '.log'
+if WITH_DUPLICATES:
+    logfname = logs_dir + 'log_dicom2stl_wDups' + str(start) + '.log'
+else:
+    logfname = logs_dir + 'log_dicom2stl_' + str(start) + '.log'
 
 # set up logging to file - see previous section for more details
 logging.basicConfig(level=logging.DEBUG,
@@ -229,12 +236,15 @@ console.setFormatter(formatter)
 logging.getLogger().addHandler(console)
 
 # PatientsID Logging
-patientsID_log_fname = logs_dir + 'patientsID_log.log'
+if WITH_DUPLICATES:
+    patientsID_log_fname = logs_dir + 'patientsID_log_wDups.log'
+else:
+    patientsID_log_fname = logs_dir + 'patientsID_log.log'
 try:
     with open(patientsID_log_fname, 'r') as infile:
-        patientsID_log = set(json.load(infile))
+        patientsID_log = json.load(infile)
 except:
-    patientsID_log = set()
+    patientsID_log = []
 
 logging.info('')
 logging.info('################################################')
@@ -245,6 +255,9 @@ logging.info('LOW QUAILITY (SLICES #) THRESHOLD: ' + str(LOWQUALITY_SLICES_TH))
 logging.info('')
 logging.info('CONVERTING ' + str(len(sub_dirs)) + ' SCANS')
 logging.info('')
+if WITH_DUPLICATES:
+    logging.info('KEEP DUPLICATES = TRUE')
+    logging.info('')
 
 for sub_dir in sub_dirs:
     try:
@@ -298,7 +311,6 @@ for sub_dir in sub_dirs:
 
         if os.path.isdir(fname[0]):
             dirFlag = True
-
 
         else:
             l = len(fname)
@@ -384,19 +396,29 @@ for sub_dir in sub_dirs:
         single_dcm = fname[0] + '/' + dcms[0]
         pydicom_meta = pydicom.dcmread(single_dcm)
         patiendID = pydicom_meta.PatientID
-        if patiendID in patientsID_log:
-            duplicate_count += 1
-            logging.warning('Patient ' + str(patiendID) + ' already processed.')
-            logging.warning('OMMITING THIS STUDY')
-            logging.info('')
-            logging.info(str("##### Progress %:  {0:.0%}".format(counter/len(sub_dirs))))
-            logging.info('')
-            shutil.rmtree(tempDir)
-            tempDir = ""
-            print('')
-            continue
-        else:
-            patientsID_log.add(patiendID)
+        if WITH_DUPLICATES: 
+            patientID_duplicate_count = len([x for x in patientsID_log if patiendID == x]) # check how many entries for this patientID are there in the log
+            if patientID_duplicate_count == 0:
+                outname_subdir = outname + patiendID + '.stl'
+                patientsID_log.append(patiendID)
+            else:
+                outname_subdir = outname + patiendID + '_' + str(patientID_duplicate_count + 1) + '.stl'
+                patientsID_log.append(patiendID) 
+
+        else: # Case when NO duplicates are desired
+            if patiendID in patientsID_log:
+                duplicate_count += 1
+                logging.warning('Patient ' + str(patiendID) + ' already processed.')
+                logging.warning('OMMITING THIS STUDY')
+                logging.info('')
+                logging.info(str("##### Progress %:  {0:.0%}".format(counter/len(sub_dirs))))
+                logging.info('')
+                shutil.rmtree(tempDir)
+                tempDir = ""
+                print('')
+                continue
+            else:
+                patientsID_log.append(patiendID)
 
 
         #vtkname =  tempDir+"/vol0.vtk"
@@ -588,7 +610,8 @@ logging.info('################################################')
 logging.info('BATCH PROCESSING COMPLETED')
 logging.info(str(counter - errors - lowq - duplicate_count) + ' SCANS PROCESSED')
 logging.info(str(lowq) + ' SCANS OMMITED DUE TO LOW QUALITY')
-logging.info(str(duplicate_count) + ' DUPLICATE PATIENT SCANS OMMITED')
+if not WITH_DUPLICATES: 
+    logging.info(str(duplicate_count) + ' DUPLICATE PATIENT SCANS OMMITED')
 logging.info(str(errors) + ' ERRORS FOUND' )
 logging.info('TOTAL EXECUTION TIME: ' + str(datetime.datetime.now() - start))
 logging.info('################################################')
