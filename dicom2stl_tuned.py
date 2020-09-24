@@ -143,8 +143,7 @@ for o, a in opts:
         isovalue = float(a)
     elif o in ("--ct"):
         CTonly = True
-    elif o in ("-l", "--largest"):
-        connectivityFilter = True
+    e000000000000 True
     elif o in ("-s", "--search"):
         dicomString = a
     elif o in ("-t", "--type"):
@@ -274,7 +273,10 @@ for sub_dir in sub_dirs:
 
         #print("")
         if tempDir == "":
-            tempDir = tempfile.mkdtemp()
+            tmp_path = os.getcwd() + '/processing_tmps/'
+            if not os.path.exists(tmp_path):
+                os.makedirs(tmp_path)
+            tempDir = tempfile.mkdtemp(dir=tmp_path)
         logging.info("Temp dir: " + tempDir)
 
         if tissueType:
