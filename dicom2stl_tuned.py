@@ -56,7 +56,7 @@ shrinkFlag = False
 smoothIterations = 5000
 quad = .75
 outname = "results.stl"
-connectivityFilter = False
+connectivityFilter = True
 anisotropicSmoothing = False
 medianFilter = False
 metadataFile = ""
@@ -143,7 +143,6 @@ for o, a in opts:
         isovalue = float(a)
     elif o in ("--ct"):
         CTonly = True
-    e000000000000 True
     elif o in ("-s", "--search"):
         dicomString = a
     elif o in ("-t", "--type"):
