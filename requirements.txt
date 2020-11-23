@@ -2,3 +2,4 @@ SimpleITK
 vtk
 numpy
 trimesh
+pydicom
