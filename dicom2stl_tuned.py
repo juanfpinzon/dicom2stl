@@ -8,14 +8,9 @@ and Infectious Diseases, dchen@mail.nih.gov.
 It is covered by the Apache License, Version 2.0:
 http://www.apache.org/licenses/LICENSE-2.0
 
-Note: if you run this script with the individual Dicom slices provided on the
-command line, they might not be ordered in the correct order.  You are better
-off providing a zip file or a directory.  Dicom slices are not necessarily
-ordered the same alphabetically as they are physically.
-
 Modifications:
     - Baked-in best parameters for processing Skulls CT Scans for SkullNet project
-        - Isocountering (Isovalue) = 150
+        - Isocountering (Isovalue) = 300
         - Smooth Iterations = 5,0000
         - Reduction factor (quad) = 0.75 
     - Added folder/subfolder batch processing loop
@@ -46,7 +41,7 @@ cleanUp = True
 tempDir = ""
 dirFlag = False
 
-isovalue = 150
+isovalue = 300
 CTonly = False
 doubleThreshold = False
 thresholds = []
@@ -68,9 +63,9 @@ rotAngle = 180
 
 options = []
 
-LOWQUALITY_SLICES_TH = 100
+LOWQUALITY_SLICES_TH = 160
 
-WITH_DUPLICATES = False
+WITH_DUPLICATES = True
 
 
 def usage():
@@ -87,13 +82,14 @@ def usage():
         -c, --clean         Clean up temp files
         -T string, --temp string      Directory to place temporary files
         -s string, --search string    Dicom series search string
-        --qualityt          Threshold of slices # - to omit low quaility studies (Default=100)
+        -q, --qualityt     Threshold of slices # - to omit low quaility studies (default=160)
+        -k, --no-duplicates    If no duplicates (by patientsID) are desired
 
         Volume processing options:
 
         -t string, --type string      CT Tissue type [skin, bone, soft_tissue, fat]
         -a, --anisotropic             Apply anisotropic smoothing to the volume
-        -i num, --isovalue num        Iso-surface value
+        -i num, --isovalue num        Iso-surface value  (default=300)
         -d string, --double string    Double threshold with 4 values in a string seperated by semicolons
 
         Mesh options:
@@ -116,7 +112,7 @@ try:
     opts, args = getopt.getopt(sys.argv[1:], "vDhacli:s:t:d:o:m:T:q:k:",
                                ["verbose", "help", "debug", "anisotropic", "clean", "ct", "isovalue=", "search=", "type=",
                                 "double=", "disable=", "enable=", "largest", "metadata", "rotaxis=", "rotangle=", "smooth=",
-                                "reduce=", "temp=", "qualityt=", "keep-duplicates"])
+                                "reduce=", "temp=", "qualityt=", "no-duplicates"])
 except getopt.GetoptError as err:
     print(str(err))
     usage()
@@ -172,8 +168,8 @@ for o, a in opts:
         options.append(a)
     elif o in ("-q", "--qualityt"):
         LOWQUALITY_SLICES_TH = int(a)
-    elif o in ("-k", "--keep-duplicates"):
-        WITH_DUPLICATES = True
+    elif o in ("-k", "--no-duplicates"):
+        WITH_DUPLICATES = False
     else:
         assert False, "unhandled options"
 
@@ -212,10 +208,11 @@ duplicate_count = 0
 logs_dir = os.getcwd() + '/logs/'
 if not os.path.exists(logs_dir):
     os.makedirs(logs_dir)
-if WITH_DUPLICATES:
-    logfname = logs_dir + 'log_dicom2stl_wDups' + str(start) + '.log'
-else:
-    logfname = logs_dir + 'log_dicom2stl_' + str(start) + '.log'
+logfname = logs_dir + 'log_dicom2stl_' + str(start) + '.log'
+# if WITH_DUPLICATES:
+#     logfname = logs_dir + 'log_dicom2stl_wDups' + str(start) + '.log'
+# else:
+#     logfname = logs_dir + 'log_dicom2stl_no-duplicates' + str(start) + '.log'
 
 # set up logging to file - see previous section for more details
 logging.basicConfig(level=logging.DEBUG,
