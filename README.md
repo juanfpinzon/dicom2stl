@@ -95,7 +95,7 @@ input_parent_folder
 ...
 ```
 
-Tuneable parameters:
+**Tuneable parameters:**
 
 This parameters can be changed by giving the following flags, by default it has best values
 that we found worked best for AutoBone project.
