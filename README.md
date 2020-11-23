@@ -33,16 +33,10 @@ The options for the script can be seen by running it:
 How it works
 ============
 First the script reads in a series of 2-d images or a simple 3-d image.  It can read
-any format supported by ITK.  If the input name is a zip file or a directory name,
-the script expects a single series of DCM images, all with the ".dcm" suffix.
+any format supported by ITK.  The script expects a single series of DCM images, all with the ".dcm" suffix.
 
 Note: if you run this script with the individual Dicom slices provided on the
-command line, they might not be ordered in the correct order.  You are better
-off providing a zip file or a directory.  Dicom slices are not necessarily
-ordered the same alphabetically as they are physically.  In the case of a zip file
-or directory, the script loads using the
-[SimpleITK ImageSeriesReader](https://simpleitk.readthedocs.io/en/master/Examples/DicomSeriesReader/Documentation.html)
-class, which orders the slices by their physical layout, not their alphabetical names.
+command line, they might not be ordered in the correct order. 
 
 The primary image processing pipeline is as follows:
 * [Shrink](https://itk.org/SimpleITKDoxygen/html/classitk_1_1simple_1_1ShrinkImageFilter.html) the volume to 256 max dim (enabled by default)
@@ -75,7 +69,7 @@ Modifications for NOVEL Software Systems - AutoBone Project:
 ========
 
 Modifications:
-* Baked-in best parameters for processing Skulls CT Scans for SkullNet project:
+* Baked-in best parameters for processing Skulls CT Scans for AutoBone project:
     * Isocountering (Isovalue) = 300
     * Smooth Iterations = 5,0000
     * Reduction factor (quad) = 0.75 
@@ -102,9 +96,12 @@ input_parent_folder
 ```
 
 Tuneable parameters:
+
 This parameters can be changed by giving the following flags, by default it has best values
 that we found worked best for AutoBone project.
 
 > **ISOVALUE:** -i {numeric_value}
+
 > **LOW_QUALITY_THRESHOLD:** -q {numeric_value} (series with # slices (dcm files) < LOW_QUALITY_THRESHOLD will be ommited)
+
 > **NO_DUPLICATES:** --no-duplicates , If no duplicates (by patientsID) are desired
