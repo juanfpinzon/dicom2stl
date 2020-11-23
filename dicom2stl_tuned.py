@@ -15,6 +15,7 @@ Modifications:
         - Reduction factor (quad) = 0.75 
     - Added folder/subfolder batch processing loop
     - Added Error handling and logging.
+    - Added low quality threshold (based on # of dicom slices) to ommit low qualty studies. (default = 160)
 Usage:
     - python dicom2stl_tuned.py -o output_folder input_parent_folder
     

@@ -23,11 +23,11 @@ Alternatively, on some Linux distributions it can be installed with the followin
 SimpleITK can be installed via the following command:
 > pip SimpleITK
 
-The options for the script can be seen by running it:
-> python dicom2stl.py --help
+Pydicom:
+> pip install pydicom
 
-Trimesh (for STL Post-processing (Skull extraction)):
-> pip trimesh
+The options for the script can be seen by running it:
+> python dicom2stl_tuned.py --help
 
 
 How it works
@@ -70,51 +70,41 @@ The amount of smoothing and mesh reduction can be adjusted via command line opti
 25 iterations of smoothing is applied and the number of vertices is reduced by 90%.
 
 
-Examples
-========
 
-To extract the bone from a zip of dicom images:
-> python dicom2stl.py -t bone -o bone.stl dicom.zip
-
-To extract the skin from a NRRD volume:
-> python dicom2stl.py -t skin -o skin.stl volume.nrrd
-
-To extract a specific iso-value from a VTK volume:
-> python dicom2stl.py -i 128 -o iso.stl volume.vtk
-
-To extract soft tissue from a dicom series in directory and
-apply a 180 degree Y axis rotation:
-> python dicom2stl.py --enable rotation -t soft_tissue -o soft.stl dicom_dir
-
-
-Modifications for NOVEL Software Systems - SkullNet Project:
+Modifications for NOVEL Software Systems - AutoBone Project:
 ========
 
 Modifications:
 * Baked-in best parameters for processing Skulls CT Scans for SkullNet project:
-    * Isocountering (Isovalue) = 150
+    * Isocountering (Isovalue) = 300
     * Smooth Iterations = 5,0000
     * Reduction factor (quad) = 0.75 
 * Added folder/subfolder batch processing loop
 * Added Error handling and logging.
+* Added low quality threshold (based on # of dicom slices) to ommit low qualty studies. (default = 160)
 
 Usage:
 > python dicom2stl_tuned.py -o output_folder input_parent_folder
 
+**Please follow this input_parent_folder structure:**
+```
+input_parent_folder
+└───series_subdir
+    |   file.dcm
+    |   file.dcm
+    |   ...
+└───series_subdir
+    |   file.dcm
+    |   file.dcm
+    |   file.dcm
+    |   ...
+...
+```
 
-STL POST-PROCESSING:
-========
+Tuneable parameters:
+This parameters can be changed by giving the following flags, by default it has best values
+that we found worked best for AutoBone project.
 
-Script to remove unwanted objects from CT Scans input STL's and only 
-extract skull object, as a new STL file.
-
-Usage:
-> python skull_extraction.py -i <input_folder> -o <output_folder>
-
-PIPELINE DICOM 2 SKULL:
-========
-
-Pipeline script that executes both dicom2stl_tuned.py and skull_extraction.py scripts.
-
-Usage:
-> python dicom2skull.py -i <input_dicom_parent_folder> -o <output_folder> -n <no_clean (to keep intermediate stage STL files (optional))>
+> **ISOVALUE:** -i {numeric_value}
+> **LOW_QUALITY_THRESHOLD:** -q {numeric_value} (series with # slices (dcm files) < LOW_QUALITY_THRESHOLD will be ommited)
+> **NO_DUPLICATES:** --no-duplicates , If no duplicates (by patientsID) are desired
