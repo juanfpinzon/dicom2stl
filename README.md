@@ -78,7 +78,10 @@ Modifications:
 * Added low quality threshold (based on # of dicom slices) to ommit low qualty studies. (default = 160)
 
 Usage:
-> python dicom2stl_tuned.py -o output_folder input_parent_folder
+> python dicom2stl_tuned.py -o output_folder_path input_parent_folder
+
+For output_folder_path please provide a path ending with '/' 
+Example: Results/
 
 **Please follow this input_parent_folder structure:**
 ```
