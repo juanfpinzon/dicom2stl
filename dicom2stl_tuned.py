@@ -575,6 +575,11 @@ for sub_dir in sub_dirs:
             mesh5 = vtkutils.rotateMesh(mesh4, rotAxis, rotAngle)
         else:
             mesh5 = mesh4
+
+        # Outdir verification
+        if not os.path.exists(os.getcwd() + '/' + outname):
+            os.makedirs(os.getcwd() + '/' + outname)
+        
         vtkutils.writeMesh(mesh5, outname_subdir)
         mesh4 = None
         gc.collect()
