@@ -193,7 +193,8 @@ for x in options:
     if y.startswith("rotat"):
         rotFlag = val
 
-
+# Add '/' to outname if not provided
+outname = outname + '/' if outname[-1] != '/' else outname
 
 # Process all subfolders of given input folder
 parent_dir = args
