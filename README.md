@@ -103,6 +103,8 @@ that we found worked best for AutoBone project.
 
 > **ISOVALUE:** -i {numeric_value}
 
-> **LOW_QUALITY_THRESHOLD:** -q {numeric_value} (series with # slices (dcm files) < LOW_QUALITY_THRESHOLD will be ommited)
+> **LOW_QUALITY_THRESHOLD:** -q {numeric_value} (series with # slices (dcm files) < LOW_QUALITY_THRESHOLD will be ommited).
 
-> **NO_DUPLICATES:** --no-duplicates , If no duplicates (by patientsID) are desired
+> **NO_DUPLICATES:** --no-duplicates , If no duplicates (by patientsID) are desired.
+
+> **NO_CONNECTIVITY_FILTER:** --no-connectfilter, all objects will be rendered.

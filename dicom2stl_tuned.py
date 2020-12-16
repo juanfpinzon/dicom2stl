@@ -110,10 +110,10 @@ def usage():
 #
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "vDhacli:s:t:d:o:m:T:q:k:",
+    opts, args = getopt.getopt(sys.argv[1:], "vDhacli:s:t:d:o:m:T:q:k:f:",
                                ["verbose", "help", "debug", "anisotropic", "clean", "ct", "isovalue=", "search=", "type=",
                                 "double=", "disable=", "enable=", "largest", "metadata", "rotaxis=", "rotangle=", "smooth=",
-                                "reduce=", "temp=", "qualityt=", "no-duplicates"])
+                                "reduce=", "temp=", "qualityt=", "no-duplicates", "no-connectfilter"])
 except getopt.GetoptError as err:
     print(str(err))
     usage()
@@ -171,6 +171,8 @@ for o, a in opts:
         LOWQUALITY_SLICES_TH = int(a)
     elif o in ("-k", "--no-duplicates"):
         WITH_DUPLICATES = False
+    elif o in ("-f", "--no-connectfilter"):
+        connectivityFilter = False
     else:
         assert False, "unhandled options"
 
@@ -254,6 +256,9 @@ logging.info('CONVERTING ' + str(len(sub_dirs)) + ' SCANS')
 logging.info('')
 if WITH_DUPLICATES:
     logging.info('KEEP DUPLICATES = TRUE')
+    logging.info('')
+if not connectivityFilter:
+    logging.info('NO CONNECTIVITY FILTER')
     logging.info('')
 
 for sub_dir in sub_dirs:
@@ -579,8 +584,12 @@ for sub_dir in sub_dirs:
             mesh5 = mesh4
 
         # Outdir verification
-        if not os.path.exists(os.getcwd() + '/' + outname):
-            os.makedirs(os.getcwd() + '/' + outname)
+        if outname[0] == '/':
+            if not os.path.exists(outname):
+                os.makedirs(outname)
+        else:
+            if not os.path.exists(os.getcwd() + '/' + outname):
+                os.makedirs(os.getcwd() + '/' + outname)
         
         vtkutils.writeMesh(mesh5, outname_subdir)
         mesh4 = None
