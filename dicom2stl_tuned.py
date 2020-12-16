@@ -396,6 +396,7 @@ for sub_dir in sub_dirs:
         single_dcm = fname[0] + '/' + dcms[0]
         pydicom_meta = pydicom.dcmread(single_dcm)
         patiendID = pydicom_meta.PatientID
+        patiendID = patiendID.replace('/', '-')
         if WITH_DUPLICATES: 
             patientID_duplicate_count = len([x for x in patientsID_log if patiendID == x]) # check how many entries for this patientID are there in the log
             if patientID_duplicate_count == 0:
