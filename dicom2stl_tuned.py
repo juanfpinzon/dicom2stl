@@ -28,6 +28,14 @@ Novosibirsk, Russia
 from __future__ import print_function
 import sys, os, getopt, time, gc, glob, math, datetime, logging
 import zipfile, tempfile, shutil, pydicom, json
+import SimpleITK as sitk
+import vtk
+import platform
+import traceback
+
+from utils import dicomutils
+from utils import sitk2vtk
+from utils import vtkutils
 
 start = datetime.datetime.now()
 
@@ -324,7 +332,6 @@ for sub_dir in sub_dirs:
             else:
                 logging.info("File names: ", fname, "\n")
 
-        import SimpleITK as sitk
 
         if debug:
             print("SimpleITK version: ", sitk.Version.VersionString())
@@ -333,8 +340,6 @@ for sub_dir in sub_dirs:
         img = sitk.Image(100, 100, 100, sitk.sitkUInt8)
         dcmnames = []
         metasrc = img
-
-        from utils import dicomutils
 
         #  Load our Dicom data
         #
@@ -530,9 +535,6 @@ for sub_dir in sub_dirs:
         #vtkname =  tempDir+"/vol.vtk"
         #sitk.WriteImage( img, vtkname )
 
-        import platform
-        from utils import sitk2vtk
-        import vtk
         vtkimg = None
 
         if platform.system() == "Windows":
@@ -547,15 +549,10 @@ for sub_dir in sub_dirs:
         img = None
         gc.collect()
 
-        import traceback
-        import vtk
-
         if debug:
             print("\nVTK version: ", vtk.vtkVersion.GetVTKVersion())
             print("VTK: ", vtk, "\n")
 
-
-        from utils import vtkutils
 
         if debug:
             print("Extracting surface")
