@@ -98,7 +98,7 @@ input_parent_folder
 
 **Tuneable parameters:**
 
-This parameters can be changed by giving the following flags, by default it has best values
+These parameters can be changed by giving the following flags, by default it has the best values
 that we found worked best for AutoBone project.
 
 > **ISOVALUE:** -i {numeric_value}
@@ -108,3 +108,12 @@ that we found worked best for AutoBone project.
 > **NO_DUPLICATES:** --no-duplicates , If no duplicates (by patientsID) are desired.
 
 > **NO_CONNECTIVITY_FILTER:** --no-connectfilter, all objects will be rendered.
+
+> **ANISOTROPIC SMOOTHING:** -a, apply Anisotropic smoothing. default=False.
+
+> **MESH REDUCTION:** --reduce {value from 0 to 1}, reduce mesh by value factor. default=0.75
+
+> **SMOOTH ITERATIONS:** --smooth {numeric_value}, # of smooth iterations to apply. default=5,000
+
+> **TISSUE TYPE:** --type {‘bone’, ‘skin’, ‘soft’ or ‘fat’}, will override ISOVALUE and apply ‘preset’ values for tissue type given. 
+    It’s meant to be for initial explorations and finetuning of ISOVALUE. default=not used.
